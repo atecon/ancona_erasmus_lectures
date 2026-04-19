@@ -34,8 +34,6 @@ include PandasPort.gfn
 include fdensity.gfn
 # help fdensity
 
-# Load helper functions
-include ml_helper.inp
 
 ##### Parameters used within the script #####
 ## 0 to 1: fraction of data to preserve for training
@@ -216,6 +214,10 @@ series fc_lasso = regls_pred(ModelLasso, X)
 fcstats_oos ~= fcstats(Salary, fc_lasso)
 smpl full
 
+
+# ================================
+##### Model comparison ###########
+# ================================
 
 
 ##### Coefficient comparison ###########
