@@ -1,0 +1,132 @@
+set verbose off
+
+# Parameters
+#============
+
+# WARNING: Please adjust the path to your local directory before running the
+# code. The code will not run otherwise.
+WORKDIR = "/home/admin-tarassow/Universität/Kurse_Eigene/THB/oekonometrie_ml_kurse/Ancona_Erasmus/"
+
+set workdir "@WORKDIR"
+
+# Load package
+include CvDataSplitter.gfn
+
+# =============
+# Load data and set sample
+# =============
+open "./data/aus_production.gdt"
+setobs 4 1956:1 --time-series
+
+# Remove all observations before 1992:1 permanently
+smpl obs >= 1992:1 --restrict --permanent
+
+genr index   # simple index series
+series TARGET = Beer  # Set target series
+# Create seasonal dummies
+list Seasonals = seasonals(1)  # omit first quarter
+scalar HORIZON = 8   # up to 8 periods
+
+# Set up cross-validation
+bundle CV = null
+list L = TARGET
+
+# Select cross-validation type
+list CV.X = L  # full up bundle
+
+#-----------------------------------------
+CV.cv_type = "rolwin"			# "recwin" OR "rolwin"
+CV.win_size = 50				# window-length
+
+
+# Pass bundle 'CV' in pointer form + run
+CvDataSplitter(&CV)
+
+# Look into the CV bundle
+print CV
+print CV.X_train[3] 	# Look into the 3-rd training set
+print CV.X_test[3]		# Look into the 3-rd training test set
+
+printf "Number of train-test sets = %d\n", nelem(CV.X_train)
+
+
+# Let's start the loop over the various training-test sets,
+# estimate the models and store the forecasts for each
+# iteration
+
+# # initialize an empty matrices for holding point forecasts
+matrix fc_season_model = {}
+matrix fc_season_mean = {}
+matrix fc_rw = {}
+matrix fc_rwdrift = {}
+matrix fc_ar1 = {}
+matrix actuals = {}
+
+loop foreach i CV.X_train
+    # Restrict to the i-th training set
+    smpl contains(index, CV.X_train[i]) == TRUE --restrict --replace
+    printf "Training sample: %s to %s\n", obslabel($t1), obslabel($t2)
+
+    # Check how many out-of-sample periods are available
+    # in the test set
+    scalar upto = xmin(HORIZON, rows(CV.X_test[i]))
+
+    ## Seasonal (regression) model
+    ols Beer const Seasonals --quiet
+    fcast --out-of-sample --quiet
+    fc_season_model |= $fcast[1:upto]  # vertically stack forecasts
+
+    ## Seasonal mean model
+    arima 0 0 0 ; 0 1 0 ; TARGET --quiet
+    fcast --out-of-sample --quiet
+    fc_season_mean |= $fcast[1:upto]  # vertically stack forecasts
+
+    # AR(1) + season + constant
+    arima 1 0 0 ; 0 1 0 ; TARGET --quiet
+    fcast --out-of-sample --dynamic --quiet
+    fc_ar1 |= $fcast[1:upto]  # vertically stack forecasts
+
+    # RW
+    arima 0 1 0 ; TARGET --nc --quiet
+    fcast --out-of-sample --dynamic --quiet
+    fc_rw |= $fcast[1:upto]  # vertically stack forecasts
+
+    # RW + drift
+    arima 0 1 0 ; TARGET --quiet
+    fcast --out-of-sample --dynamic --quiet
+    fc_rwdrift |= $fcast[1:upto]  # vertically stack forecasts
+
+    # Store actuals of test set
+    smpl contains(index, CV.X_test[i]) == TRUE --restrict --replace
+    actuals |= {TARGET}[1:upto]
+endloop
+
+# Concatenate all vectors of point forecasts
+matrix forecasts = fc_season_model ~ fc_season_mean ~ \
+  fc_rw ~ fc_rwdrift ~ fc_ar1
+# Attach column labels
+strings ModelNames = defarray("seas-model", "seas-mean", "rw", "rw-drift", "ar(1)-seas")
+cnameset(forecasts, ModelNames)
+
+printf "Matrix of point forecasts (n=%d)", rows(forecasts)
+printf "%12.3f\n", forecasts
+
+# Forecast evaluation
+matrix fc_stats = fcstats(actuals, forecasts)
+cnameset(fc_stats, ModelNames)
+print "Forecast statistics:"
+printf "%12.3f\n", fc_stats
+
+# Compute forecast errors for each model
+matrix fc_errors = actuals .- forecasts
+cnameset(fc_errors, ModelNames)
+print fc_errors[1:5,]
+
+# Boxplot of forecast errors
+# FILENAME = "boxplot_cross_validated_fcerrors.png"
+boxplot --matrix=fc_errors --output=display \  # "./figures/@FILENAME" \
+  { set title "Distribution of forecast errors";
+    set grid;}
+
+
+
