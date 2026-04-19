@@ -1,0 +1,151 @@
+% Packages
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage[right]{eurosym}
+\usepackage{epstopdf}
+\usepackage{graphicx}
+\usepackage{rotating}
+\usepackage{subfigure}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{moreverb}
+\usepackage{eurosym}
+\usepackage{booktabs}
+\usepackage{textcomp}
+\usepackage{lmodern}
+\usepackage[dvipsnames]{pstricks}
+\usepackage[absolute,overlay]{textpos}
+\usepackage{listings} %for program code
+\usepackage{tikz}
+\usepackage{verbatim}
+\usepackage{url}
+\usepackage{hyperref}
+
+% BIBLIOGRAPHY
+%\usepackage[backend=biber,style=mla]{biblatex}
+% Bib style
+\usepackage[
+	backend=biber,
+	style=authoryear,
+	sorting=nyt,
+	natbib=true,
+	url=false,
+	eprint=false,
+	isbn=false,
+	maxcitenames=2,
+	uniquename=init,  % disambiguate authors with same initials
+	giveninits=true,  % only 1st letter of first name
+	date=year,
+]{biblatex}
+\addbibresource{library.bib} % Name of your .bib file
+%\addbibresource{/home/admin-tarassow/Nextcloud/thb_bwsyncandshare/LiteraturVerwaltung/library.bib} % Name of your .bib file
+%\usepackage{natbib}
+
+
+% Beamer settings
+\usecolortheme{beaver}
+\usetheme{CambridgeUS} % https://deic.uab.cat/~iblanes/beamer_gallery/index_by_theme.html
+
+\setbeamercovered{transparent}
+\setbeamertemplate{footline}[page number]
+\setbeamertemplate{caption}[numbered] % Number the captions such as figures
+\setbeamertemplate{navigation symbols}{}  % hide navigation symbols
+
+% Settings for listings
+\lstset{showstringspaces=false}
+
+% THB specific Colors
+\definecolor{THBRed}{RGB}{206,22,40}
+\definecolor{THBBlue}{RGB}{22,132,206}
+\definecolor{THBGreen}{RGB}{22,206,95}
+
+% Python listing style
+% For details: https://nasa.github.io/nasa-latex-docs/html/examples/listing.html
+\lstdefinestyle{python}{
+	language=python,
+	basicstyle=\ttfamily\small,
+	breakatwhitespace=false,  % sets if automatic breaks should only happen at whitespace
+	breaklines=true,    % sets automatic line breaking
+	captionpos=t,
+	keepspaces=true,
+	showlines=false,          % hide empty first/last listing lines
+	numbers=left,
+	numberblanklines=false,
+	xleftmargin=1.5mm,   % left margin for code block
+	xrightmargin=1.5mm,  % right margin for code block
+	numbersep=5pt,
+	showspaces=false,   % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+	showstringspaces=false,  % underline spaces within strings only
+	showtabs=false,
+	tabsize=2,
+	frame=single,                % adds a frame around the code
+	keywordstyle=\color{THBRed},
+	% pandas-specific emphasis (listings is lexical, not semantic)
+	emph={pd,DataFrame,Series,Index,read_csv,read_excel,head,tail,info,dtypes,isnull,fillna,astype,rename,columns,groupby,value_counts,nunique,unique,between,mean,sum,sort_values,copy,dropna,plt,figure,subplots,plot,scatter,hist,bar,barplot,lineplot,relplot,pairplot,boxplot,violinplot,heatmap,sns,sklearn,train_test_split,LinearRegression,LogisticRegression,DecisionTreeClassifier,RandomForestClassifier,KMeans,StandardScaler,MinMaxScaler,fit,transform,fit_transform,predict,score,classification_report,confusion_matrix,accuracy_score,mean_squared_error,r2_score},
+	emphstyle=\color{THBBlue}\bfseries,
+	commentstyle=\color{THBGreen},
+	extendedchars=false
+}
+
+% Hansl/Gretl listing style
+\lstdefinestyle{hansl}{
+	language=hansl,
+	basicstyle=\ttfamily\small,
+	breakatwhitespace=false,  % sets if automatic breaks should only happen at whitespace
+	breaklines=true,    % sets automatic line breaking
+	captionpos=t,
+	keepspaces=true,
+	numbers=left,
+	xleftmargin=1.5mm,   % left margin for code block
+	xrightmargin=1.5mm,  % right margin for code block
+	showlines=false,          % hide empty first/last listing lines
+	numberblanklines=false,
+	numbersep=5pt,
+	showspaces=false,   % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+	showstringspaces=false,  % underline spaces within strings only
+	showtabs=false,
+	tabsize=2,
+	frame=single,                % adds a frame around the code
+	keywordstyle=\color{THBRed},
+	commentstyle=\color{THBGreen},
+	extendedchars=false
+}
+
+% Default to Python style
+\lstset{style=hansl}
+% Important: keep \end{lstlisting} at the beginning of the line.
+% Leading spaces before \end{lstlisting} are treated as an extra (empty) code line.
+
+% Custom commands and environments
+\hypersetup{
+	colorlinks=true,
+	urlcolor=blue,
+	citecolor=mygreen,
+	linkcolor=blue,
+}
+
+% Information to be included in the title page:
+\logo{\includegraphics[height=0.8cm]{THB_FB-W_Logo.jpg}\vspace{220pt}}
+
+\author[Tarassow]{Artur Tarassow}
+% - Use the \inst command only if there are several affiliations.
+% - Keep it simple, no one is interested in your street address.
+\institute{
+	\inst{} Applied University of Brandenburg
+	\newline
+	\texttt{\small{artur.tarassow@th-brandenburg.de}}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% VON DANIEL
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%              cmsst_header.tex
+%
+% Fonts:
+%
+%\usepackage{eulervm}
+%\usepackage[scaled]{helvet}
+%\def\normalsize{\fontsize{12bp}{14bp}\selectfont}
