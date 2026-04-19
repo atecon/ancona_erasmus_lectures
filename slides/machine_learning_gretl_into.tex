@@ -37,7 +37,7 @@
 \begin{frame}[fragile]{ML Fundamentals Overview}
 	\begin{figure}
 		\centering
-		\includegraphics[width=0.75\textwidth]{../../common/figures/overview_supervised_learning_process.png}
+		\includegraphics[width=0.75\textwidth]{../figures/overview_supervised_learning_process.png}
 		\caption{Roadmap for building ML systems. Source: \citep[p. 11]{raschka2019PythonMachineLearning}.}
 	\end{figure}
 \end{frame}
@@ -278,7 +278,7 @@
 
 	\begin{figure}
 		\centering
-		\includegraphics[width=0.8\textwidth]{../../common/figures/raschka2019_classification_underfitting_overfitting.png}
+		\includegraphics[width=0.8\textwidth]{../figures/raschka2019_classification_underfitting_overfitting.png}
 		\caption{Example of underfitting (high bias), good fit (balanced), and overfitting (high variance). Source: \citep[p. 66]{raschka2019PythonMachineLearning}.}
 	\end{figure}
 \end{frame}
@@ -365,7 +365,7 @@
 		\column{0.5\textwidth}
 		\begin{figure}
 			\centering
-			\includegraphics[width=0.95\textwidth]{../../common/figures/ridge_path_coefficient.png}
+			\includegraphics[width=0.95\textwidth]{../figures/ridge_path_coefficient.png}
 		\end{figure}
 	\end{columns}
 \end{frame}
@@ -389,7 +389,7 @@
 		\column{0.45\textwidth}
 		\begin{figure}
 			\centering
-			\includegraphics[width=0.88\textwidth]{../../common/figures/james_etal_lasso_coefficient_path.png}
+			\includegraphics[width=0.88\textwidth]{../figures/james_etal_lasso_coefficient_path.png}
 		\end{figure}
 	\end{columns}
 \end{frame}
@@ -445,7 +445,7 @@
 	\begin{itemize}
 		\setlength{\itemsep}{0.15cm}
 		\item \texttt{ridge\_lasso\_coefficient\_path.inp}: Coefficient paths for Ridge and Lasso using the \texttt{regls} package
-		\item \texttt{crossval\_ridge\_lasso.gretl}: Cross-validation to select $\lambda$ for Ridge and Lasso
+		\item \texttt{crossval\_ridge\_lasso.inp}: Cross-validation to select $\lambda$ for Ridge and Lasso
 	\end{itemize}
 \end{frame}
 
@@ -503,7 +503,7 @@
             \begin{figure}
                 \centering
                 \subfigure{
-                    \includegraphics[width=.82\textwidth]{../../common/figures/knn_1_circle.png}}
+                    \includegraphics[width=.82\textwidth]{../figures/knn_1_circle.png}}
                 \caption{\footnotesize Search for the nearest data point in the training dataset ($n=5$) which looks most "similar" using some distance function $d()$.}
                 %\label{fig:kmeans_steps}
             \end{figure}
@@ -569,19 +569,19 @@
 	\small
 	\begin{figure}
 		\centering
-		\includegraphics[width=0.5\textwidth]{../../common/figures/raschka2019_classification_linear_nonlinear_separability.png}
+		\includegraphics[width=0.5\textwidth]{../figures/raschka2019_classification_linear_nonlinear_separability.png}
 		\caption{Linear vs. non-linear separability. Source: \citep[p. 23]{raschka2019PythonMachineLearning}.}
 	\end{figure}
 	\vspace{-0.7cm}
 	%\begin{figure}
 	%	\centering
-	%	\includegraphics[width=0.425\textwidth]{../../common/figures/knn_decision_boundaries.png}
+	%	\includegraphics[width=0.425\textwidth]{../figures/knn_decision_boundaries.png}
 	%	\caption{KNN decision boundary example. Source: \citep[p. 54]{raschka2019PythonMachineLearning}.}
 	%\end{figure}
 
 	\begin{figure}
         \centering
-        \includegraphics[width=.66\textwidth]{../../common/figures/knn_example_James_etal2017.png}
+        \includegraphics[width=.66\textwidth]{../figures/knn_example_James_etal2017.png}
         \caption{\footnotesize{Source: \citet[p. 467]{james2023IntroductionStatisticalLearning}}}
         %\label{fig:kmeans_mrw}
     \end{figure}
@@ -591,7 +591,7 @@
 \begin{frame}{KNN Using Time-Series Data}
     \begin{figure}
         \centering
-        \includegraphics[width=0.7\textwidth]{../../common/figures/forecasts_grid_unit=Kommi Kontaktlinse_window=450.png}
+        \includegraphics[width=0.7\textwidth]{../figures/forecasts_grid_unit=Kommi Kontaktlinse_window=450.png}
         \caption{\footnotesize \textit{Out-of-sample} ($h=14$ days) time-series forecasting using KNN, in comparison to a structural time-series model. Daily data with day features (e.g., day of week, holidays).}
     \end{figure}
 \end{frame}
@@ -620,42 +620,14 @@
 \end{frame}
 
 
-\begin{frame}[fragile]{Code Example 2: K-Nearest Neighbors in Gretl}
-	\textbf{File:} \texttt{../code/02\_knn\_classification.inp}
+\begin{frame}{Code Example 2: KNN Classification in Gretl}
+	See code examples:
+	\vspace{0.25cm}
 
-	\vspace{0.2cm}
-
-	\tiny
-	\begin{lstlisting}[style=hansl]
-# ==============================================================
-# Example 2: K-Nearest Neighbors Classification
-# Package: knn.gfn (Artur Tarassow)
-# Author: PhD Seminar, Ancona 2026
-# ==============================================================
-
-# Install and include package
-pkg install knn --quiet
-include knn.gfn
-
-# Load data
-open ../data/TODO_dataset.gdt  # TODO: Classification dataset
-
-# Prepare training and test data
-# TODO: Implement train-test split
-
-# Standardize features (important for KNN)
-matrix X_train_std = (X_train .- mean(X_train)) ./ sd(X_train)
-matrix X_test_std = (X_test .- mean(X_train)) ./ sd(X_train)
-
-# KNN with k=5
-# TODO: Check exact knn.gfn function signature
-scalar k = 5
-matrix predictions = knn(X_train_std, y_train, X_test_std, k)
-
-# Evaluate
-scalar accuracy = mean(predictions .== y_test)
-print "KNN Accuracy (k=@k): @accuracy"
-	\end{lstlisting}
+	\begin{itemize}
+		\setlength{\itemsep}{0.15cm}
+		\item \texttt{knn\_classification.inp}: KNN classification example using the \texttt{knn} package
+	\end{itemize}
 \end{frame}
 
 % ==================== SECTION 3: TREE-BASED & KERNEL METHODS ====================
@@ -699,7 +671,7 @@ print "KNN Accuracy (k=@k): @accuracy"
 		\begin{column}{0.5\textwidth}
 			\begin{figure}
 				\centering
-				\includegraphics[width=.9\textwidth]{../../common/figures/decision_tree_go_to_beach_from_raschka.png}
+				\includegraphics[width=.9\textwidth]{../figures/decision_tree_go_to_beach_from_raschka.png}
 				\caption{\footnotesize Decision tree for day planning. Source: \citet{raschka2019PythonMachineLearning}}
 			\end{figure}
 		\end{column}
@@ -710,7 +682,7 @@ print "KNN Accuracy (k=@k): @accuracy"
 \begin{frame}{Basic Concepts of Decision Trees}
 	\begin{figure}
 		\centering
-		\includegraphics[width=.9\textwidth]{../../common/figures/tree_basic_terminology.png}
+		\includegraphics[width=.9\textwidth]{../figures/tree_basic_terminology.png}
 		\caption{Connections between decision nodes are called \textbf{branches}.\newline \footnotesize Source: \url{https://365datascience.com/tutorials/machine-learning-tutorials/decision-trees/}}
 	\end{figure}
 \end{frame}
@@ -735,7 +707,7 @@ print "KNN Accuracy (k=@k): @accuracy"
 		\begin{column}{0.5\textwidth}
 			\begin{figure}
 				\centering
-				\includegraphics[width=.85\textwidth]{../../common/figures/tree_basic_data=hitters.png}
+				\includegraphics[width=.85\textwidth]{../figures/tree_basic_data=hitters.png}
 				\caption{\footnotesize Binary tree with 2 internal nodes and 3 leaves. The value of each leaf corresponds to the average (logarithmic) salary of players in this partition.}
 			\end{figure}
 		\end{column}
@@ -747,7 +719,7 @@ print "KNN Accuracy (k=@k): @accuracy"
 		\begin{column}{0.5\textwidth}
 			\begin{figure}
 				\centering
-				\includegraphics[width=.85\textwidth]{../../common/figures/tree_basic_data=hitters.png}
+				\includegraphics[width=.85\textwidth]{../figures/tree_basic_data=hitters.png}
 				\caption{\footnotesize Players with less than 4.5 years of playing experience earn an average of $e^{5.11} = 165,000$ USD.}
 				\label{fig:tree_hitters}
 			\end{figure}
@@ -755,7 +727,7 @@ print "KNN Accuracy (k=@k): @accuracy"
 		\begin{column}{0.5\textwidth}  %%<--- here
 			\begin{figure}
 				\centering
-				\includegraphics[width=.85\textwidth]{../../common/figures/tree_basic_partiioned_space_data=hitters.png}
+				\includegraphics[width=.85\textwidth]{../figures/tree_basic_partiioned_space_data=hitters.png}
 				\caption{\footnotesize The three regions of the input space defined by the tree in Fig. \ref{fig:tree_hitters}. This is the optimally \textit{pruned} tree with 3 terminal nodes.}
 				\label{fig:tree_hitters_partitioned_space}
 			\end{figure}
@@ -806,7 +778,7 @@ print "KNN Accuracy (k=@k): @accuracy"
 			\href{https://vdsbook.com/12-rf\#fig-decision-tree-train-partition-example}{Source}
 		\end{column}
 		\begin{column}{0.78\textwidth}
-			\includegraphics[width=\textwidth]{../../common/figures/yu_barter_classification_tree.png}
+			\includegraphics[width=\textwidth]{../figures/yu_barter_classification_tree.png}
 		\end{column}
 	\end{columns}
 \end{frame}
@@ -859,47 +831,13 @@ print "KNN Accuracy (k=@k): @accuracy"
 \begin{frame}{Comparison of Model Types}
 	\begin{figure}
 		\centering
-		\includegraphics[width=.62\textwidth]{../../common/figures/comparison_linearmodel_vs_treebased.png}
+		\includegraphics[width=.62\textwidth]{../figures/comparison_linearmodel_vs_treebased.png}
 		%\caption{\texttt{Heart} dataset: Unpruned classification tree created through top-down recursive binary partitioning and \textit{greedy} splits.}
 	\end{figure}
 \end{frame}
 
 
-\begin{frame}[fragile]{Code Example 3: Decision Trees in Gretl}
-	\textbf{File:} \texttt{../code/03\_decision\_tree.inp}
-
-	\vspace{0.2cm}
-
-	\tiny
-	\begin{lstlisting}[style=hansl]
-# ==============================================================
-# Example 3: Decision Tree for Classification/Regression
-# Note: Gretl has limited built-in tree support
-# Author: PhD Seminar, Ancona 2026
-# ==============================================================
-
-# TODO: Determine exact Gretl tree-building function
-# Options:
-#   1. Use R integration via rpart package
-#   2. Use external tree package if available
-#   3. Demonstrate concept with logit/probit tree splits
-
-# Load data
-open ../data/TODO_dataset.gdt
-
-# For now, demonstrate tree concept with sequential splits
-# Split 1: If X1 > threshold, predict category A
-# Split 2: Further split based on X2
-
-matrix result = {}
-# TODO: Implement tree construction or reference R example
-
-print "Decision tree example structure"
-# TODO: Add tree visualization or detailed explanation
-	\end{lstlisting}
-\end{frame}
-
-\begin{frame}[fragile]{Random Forests: Bootstrap Aggregation}
+\begin{frame}{Random Forests: Bootstrap Aggregation}
 	\textbf{Problem} with single tree: High variance, overfitting
 	\vspace{0.1cm}
 
@@ -940,7 +878,7 @@ print "Decision tree example structure"
 \begin{frame}{Random Forests: Illustration}
 	\begin{figure}
 		\centering
-		\includegraphics[width=0.6\textwidth]{../../common/figures/random_forest_illustrated.png}
+		\includegraphics[width=0.6\textwidth]{../figures/random_forest_illustrated.png}
 		\caption{An RF fit based on an ensemble of just three trees is depicted. Source: \url{https://vdsbook.com/12-rf}}
 	\end{figure}
 \end{frame}
@@ -955,7 +893,7 @@ print "Decision tree example structure"
 
 	\begin{figure}
 		\centering
-		\includegraphics[width=.5\textwidth]{../../common/figures/bagging_error_rate_decision_tree.png}
+		\includegraphics[width=.5\textwidth]{../figures/bagging_error_rate_decision_tree.png}
 		\caption{\footnotesize The test error is a function of the number of bootstrap replications and thus trees, $B$. The black dashed line shows the test error of a single classification tree. Source: \citet[p. 318]{james2023IntroductionStatisticalLearning}.}
 		\label{fig:bagging_error}
 	\end{figure}
@@ -1009,43 +947,16 @@ print "Decision tree example structure"
 \end{frame}
 
 
-\begin{frame}[fragile]{Code Example 4: Random Forests in Gretl}
-	\textbf{File:} \texttt{../code/04\_random\_forest.inp}
+\begin{frame}{Code Example 4: Random Forests in Gretl}
 
-	\vspace{0.2cm}
+	See code examples:
+	\vspace{0.25cm}
 
-	\tiny
-	\begin{lstlisting}[style=hansl]
-# ==============================================================
-# Example 4: Random Forests with Feature Importance
-# Note: Uses R integration (randomForest package)
-# Author: PhD Seminar, Ancona 2026
-# ==============================================================
+	\begin{itemize}
+		\setlength{\itemsep}{0.15cm}
+		\item \texttt{random\_forest\_regression.inp}: Random Forest regression example using the \texttt{random\_forest} gretl package
+	\end{itemize}
 
-# Load data
-open ../data/TODO_dataset.gdt
-
-# Prepare data matrices
-# TODO: Create X (features) and y (target) matrices
-
-# Use R integration to fit Random Forest
-# TODO: Determine Gretl-R integration syntax
-
-# Install and use randomForest in R:
-# rf_model <- randomForest(y ~ ., data=df, ntree=500, mtry=sqrt(p))
-# feature_imp <- importance(rf_model)
-# oob_error <- rf_model$err.rate
-
-# Expected output:
-#   - OOB error rate
-#   - Feature importance rankings
-#   - Variable importance plot
-
-# TODO: Add permutation importance reference/calculation
-# See: https://github.com/atecon/permutation_importance
-
-print "Random Forest results"
-	\end{lstlisting}
 \end{frame}
 
 
@@ -1090,23 +1001,9 @@ print "Random Forest results"
 \begin{frame}{Permutation Feature Importance Visualization}
 	\begin{figure}
 		\centering
-		\includegraphics[width=.85\textwidth]{../../common/figures/yu_barter_shopping-variable-importance-permutation.png}
+		\includegraphics[width=.85\textwidth]{../figures/yu_barter_shopping-variable-importance-permutation.png}
 		\caption{A bar chart showing the permutation feature importance of each variable in the RF fit for predicting online purchase intent. \footnotesize{Source: \url{https://vdsbook.com/12-rf\#fig-shopping-variable-importance-permutation}}}
 	\end{figure}
-\end{frame}
-
-
-\begin{frame}{Boosting}
-	\textbf{Question:} Can one combine multiple \textit{weak learners} in such a way that the ensemble becomes a \textit{strong learner}?\footnote{A weak learner is a simple model (in terms of complexity measured by the number of features, the degree of non-linearity or number of nodes in case of a tree) whose accuracy is just a little bit better than random guess.}
-	\vfill
-
-	\begin{itemize}
-		\item Recall, bagging involves training each tree on a bootstrap data set, independent of the other trees.
-		\item With boosting, each model is grown sequentially \textbf{using information from previously trained models}.
-		\item Boosting combines multiple weak learners to produce a form of committee whose performance can be significantly better than that of any of the base classifiers $\Rightarrow$ Bias reduction
-		\item Adaptive boosting (AdaBoost) is a strategy developed by \citet{Freund.Schapire1996} for classification.
-		\item \citet{Friedman2001} introduced gradient-based boosting.
-	\end{itemize}
 \end{frame}
 
 
@@ -1138,6 +1035,21 @@ print "Random Forest results"
     \item \texttt{rf\_plot()}: Visualize feature importance (horizontal bar chart)
   \end{itemize}
 \end{frame}
+
+
+\begin{frame}{Boosting}
+	\textbf{Question:} Can one combine multiple \textit{weak learners} in such a way that the ensemble becomes a \textit{strong learner}?\footnote{A weak learner is a simple model (in terms of complexity measured by the number of features, the degree of non-linearity or number of nodes in case of a tree) whose accuracy is just a little bit better than random guess.}
+	\vfill
+
+	\begin{itemize}
+		\item Recall, bagging involves training each tree on a bootstrap data set, independent of the other trees.
+		\item With boosting, each model is grown sequentially \textbf{using information from previously trained models}.
+		\item Boosting combines multiple weak learners to produce a form of committee whose performance can be significantly better than that of any of the base classifiers $\Rightarrow$ Bias reduction
+		\item Adaptive boosting (AdaBoost) is a strategy developed by \citet{Freund.Schapire1996} for classification.
+		\item \citet{Friedman2001} introduced gradient-based boosting.
+	\end{itemize}
+\end{frame}
+
 
 \section{Support Vector Machines}
 
@@ -1184,7 +1096,7 @@ print "Random Forest results"
 \begin{frame}
 	\begin{figure}
 		\centering
-		\includegraphics[width=0.7\textwidth]{../../common/figures/raschka2019_classification_svm_maximum_margin.png}
+		\includegraphics[width=0.7\textwidth]{../figures/raschka2019_classification_svm_maximum_margin.png}
 		\caption{SVM margin and support vectors. Source: \citep[p. 69]{raschka2019PythonMachineLearning}.}
 	\end{figure}
 	\vspace{0.5cm}
@@ -1247,9 +1159,10 @@ print "Random Forest results"
 \end{frame}
 
 \begin{frame}{Gretl Built-in SVM Functionality}
+	\small
     \textbf{Author:} Allin Cottrell \\
   \textbf{Library:} libsvm (integrated plugin, no external installation needed)
-
+  \textbf{Doc}: \url{https://sourceforge.net/projects/gretl/files/manual/gretl-svm.pdf}
   \vspace{0.1cm}
 
   \textbf{Main Features:}
@@ -1275,45 +1188,6 @@ print "Random Forest results"
   \end{itemize}
 \end{frame}
 
-
-\begin{frame}[fragile]{Code Example 5: Support Vector Machines in Gretl}
-	\textbf{File:} \texttt{../code/05\_svm.inp}
-
-	\vspace{0.2cm}
-
-	\tiny
-	\begin{lstlisting}[style=hansl]
-# ==============================================================
-# Example 5: Support Vector Machines (libsvm integration)
-# Dataset: TODO - ISL classification/regression dataset
-# Author: PhD Seminar, Ancona 2026
-# ==============================================================
-
-# Load data
-open ../data/TODO_dataset.gdt
-
-# TODO: Prepare training and test data
-# Standardize features (important for SVM)
-
-# Linear SVM for classification
-# TODO: Check Gretl's SVM function signature
-
-# Possible syntax (needs verification):
-# svm y const X1 X2 X3 --kernel=linear --cost=1
-# svm y const X1 X2 X3 --kernel=rbf --cost=1 --gamma=0.1
-
-# RBF kernel SVM with cost=1
-# TODO: Implement SVM call with appropriate parameters
-
-# Evaluate predictions
-# TODO: Compute classification metrics (accuracy, F1, AUC)
-
-# SVM for Regression:
-# TODO: Add SVR example with epsilon-insensitive loss
-
-print "SVM results"
-	\end{lstlisting}
-\end{frame}
 
 \begin{frame}[fragile]{Tree-Based vs. Kernel Methods: Comparison}
 	\begin{table}
@@ -1457,7 +1331,7 @@ print "SVM results"
             \begin{figure}
                 \centering
                 \subfigure{
-                    \includegraphics[width=1.0\textwidth]{../../common/figures/kfold_approach_k=5_scikitlearn.png}}
+                    \includegraphics[width=1.0\textwidth]{../figures/kfold_approach_k=5_scikitlearn.png}}
                 \caption{\footnotesize{Illustration of k-fold CV for $k=5$. The training data is shown in green. The held-out set is indicated by the blue block.}}
             \end{figure}
         \end{column}
@@ -1469,7 +1343,7 @@ print "SVM results"
     \begin{figure}
         \centering
         \subfigure{
-            \includegraphics[width=0.8\textwidth]{../../common/figures/kfold_loocv_comparison_James_etal_2017.png}}
+            \includegraphics[width=0.8\textwidth]{../figures/kfold_loocv_comparison_James_etal_2017.png}}
         \caption{\footnotesize Similar test error rates achieved by LOOCV and $k$-fold CV. Even though the test error may be underestimated, the correct hyperparameter value that minimizes the MSE can be well estimated by CV. Source: \citet[p. 208]{james2023IntroductionStatisticalLearning}.}
     \end{figure}
 \end{frame}
@@ -1500,7 +1374,7 @@ print "SVM results"
 \begin{frame}{Cross-Validation}
     \begin{figure}
         \centering
-		\includegraphics[width=0.9\textwidth]{../../common/figures/kfold_classification_James_etal_2017.png}
+		\includegraphics[width=0.9\textwidth]{../figures/kfold_classification_James_etal_2017.png}
         %\caption{\footnotesize Similar test error rates achieved by LOOCV and $k$-fold CV. Even though the test error may be underestimated, the correct hyperparameter value that minimizes the MSE can be well estimated by CV. Source: \citet[p. 186]{James.etal2017}.}
     \end{figure}
     Source: \citet[p. 211]{james2023IntroductionStatisticalLearning}
@@ -1520,7 +1394,7 @@ print "SVM results"
 \begin{frame}{Imbalanced Class Distribution}
     \begin{figure}
         \centering
-		\includegraphics[width=0.85\textwidth]{../../common/figures/kfold_stratified_scikitlearn.png}
+		\includegraphics[width=0.85\textwidth]{../figures/kfold_stratified_scikitlearn.png}
     \end{figure}
     Source: \url{https://scikit-learn.org/stable/modules/cross_validation.html\#stratified-k-fold}
 \end{frame}
@@ -1543,7 +1417,7 @@ print "SVM results"
         \begin{column}{0.5\textwidth}  %%<--- here
             \begin{figure}
                 \centering
-				\includegraphics[width=1.0\textwidth]{../../Angewandte_Oekonometrie_2_BA/figures/uber_backtesting_sliding_window.png}
+				\includegraphics[width=1.0\textwidth]{../figures/uber_backtesting_sliding_window.png}
                 \caption{\footnotesize{Cross-validation procedure with a 'rolling' window for training. The diagram shows a sequence of $h$-step ahead forecasts can be created.}}
             \end{figure}
         \end{column}
@@ -1551,57 +1425,21 @@ print "SVM results"
 \end{frame}
 
 
-\begin{frame}[fragile]{Code Example 6: K-Fold Cross-Validation Setup}
-	\textbf{File:} \texttt{../code/06\_kfold\_cv.inp}
+\begin{frame}{CvDataSplitter Package for Cross-Validation Splits}
+	\small
+		\textbf{Author:} Artur Tarassow \\
+	\textbf{Package:} \texttt{CvDataSplitter.gfn} (Version 0.3, 2021-06-21)
+	\textbf{Doc}: \url{https://gretl.sourceforge.net/current_fnfiles/CvDataSplitter.gfn}
+	\vspace{0.1cm}
 
-	\vspace{0.2cm}
-
-	\tiny
-	\begin{lstlisting}[style=hansl]
-# ==============================================================
-# Example 6: K-Fold Cross-Validation Setup
-# Package: CvDataSplitter.gfn (Artur Tarassow)
-# Author: PhD Seminar, Ancona 2026
-# ==============================================================
-
-# Install and include package
-pkg install CvDataSplitter --quiet
-include CvDataSplitter.gfn
-
-# Load data
-open ../data/TODO_dataset.gdt
-
-# Create 5-fold CV indices
-scalar k = 5
-matrix fold_indices = TODO_create_cv_folds(k, $nobs)
-
-# Storage for results
-matrix cv_errors = {}
-
-# For each fold
-loop i=1..k --quiet
-	# Get fold indices
-	matrix test_idx = (fold_indices == i)
-	matrix train_idx = (fold_indices != i)
-
-	# Split data
-	matrix y_train = y[train_idx]
-	matrix X_train = X[train_idx,]
-	matrix y_test = y[test_idx]
-	matrix X_test = X[test_idx,]
-
-	# Fit model on training fold
-	ols y_train const X_train --quiet
-	scalar rmse_fold = $rmse
-
-	# Store error
-	matrix cv_errors = cv_errors | rmse_fold
-endloop
-
-# Average CV error
-scalar cv_error_mean = mean(cv_errors)
-print "5-Fold CV RMSE: @cv_error_mean"
-	\end{lstlisting}
+	\textbf{Main Features:}
+	\begin{itemize}
+		\item Public function: \texttt{CvDataSplitter(\&b)} with bundle-based configuration
+		\item Multiple CV strategies: \textit{kfold} (default), \textit{loo}, \textit{recwin}, and \textit{rolwin}
+		\item Flexible input modes: pass predictors as a list or as a matrix (with index vector)
+		\item User control via bundle options such as \textit{n\_folds} (for k-fold CV) and \textit{win\_size} (for time-window CV)
+		\item Output prepared for modeling: train/test splits stored in arrays (e.g., \texttt{b.X\_train}, \texttt{b.X\_test})
+	\end{itemize}
 \end{frame}
 
 
@@ -1785,7 +1623,7 @@ print "5-Fold CV RMSE: @cv_error_mean"
 	\begin{figure}
 		\centering
 		\subfigure{
-			\includegraphics[width=.58\textwidth]{../../common/figures/kmeans_iterations_from_bishop.png}}
+			\includegraphics[width=.58\textwidth]{../figures/kmeans_iterations_from_bishop.png}}
 		\caption{\footnotesize Illustration of the K-means algorithm for $K=2$ clusters. The centroids are shown as crosses. The algorithm quickly converges to a stable solution. Source: \citet{Bishop2016}.}
 		\label{fig:kmeans_steps}
 	\end{figure}
@@ -1831,7 +1669,7 @@ print "5-Fold CV RMSE: @cv_error_mean"
 		\begin{column}{0.58\textwidth}
 			\begin{figure}
 				\centering
-				\includegraphics[width=0.7\textwidth]{../../common/figures/kmeans_elbow_method.png}
+				\includegraphics[width=0.7\textwidth]{../figures/kmeans_elbow_method.png}
 				\caption{\footnotesize Elbow = point where marginal improvement drops off.}
 				%\label{fig:kmeans_steps}
 			\end{figure}
@@ -1960,7 +1798,7 @@ print "5-Fold CV RMSE: @cv_error_mean"
 
 \begin{frame}{ROC Curve for Binary Classification \textbf{II}}
     \begin{figure}
-        \includegraphics[scale=0.35]{../../common/figures/mroz_logit_roc.png}
+        \includegraphics[scale=0.35]{../figures/mroz_logit_roc.png}
         \caption{\scriptsize A ROC curve for a Logit model with the \texttt{mroz87} data. \textbf{Left}: The curve traces two types of errors as the threshold $c$ varies. Each combination shows the true positive rate and false positive rate as a function of $c$. The ideal ROC curve hugs the upper left corner, showing a high true positive rate and a low false positive rate. The 45-degree line represents the 'no information' classifier (pure guessing). \textbf{Right}: This graph shows the proportion of correctly predicted classes as a function of the threshold parameter $c$. The maximum is reached at $c = 0.46$, which is only slightly different from the standard threshold of 0.5.}
     \end{figure}
 \end{frame}
