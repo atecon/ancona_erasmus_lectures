@@ -1,0 +1,163 @@
+/*
+*** Multi-class classification example ***
+
+Data: Employment and schooling history for a sample of men for the years 1981 to 1987
+*/
+
+clear
+set verbose off
+set seed 1234
+
+/* Packages required on your machine:
+
+1. pkg install knn
+2. pkg install PandasPort
+3. pkg install heatmap
+*/
+
+# Load packages
+# =============
+include knn.gfn
+# help knn  			# take a look at the help
+include PandasPort.gfn
+# help PandasPort
+include heatmap.gfn
+# help heatmap
+
+# Load helper functions
+include ml_helper.inp
+
+
+# Open the dataset
+# =============
+open keane.gdt --preserve
+
+# Look into the target series "choice"
+print choice --head=10
+print value_counts(choice, TRUE)  # relative class occurences
+
+# Define the list of features
+list X = educ exper expersq status
+
+# Remove missing values
+list ALL = choice X
+print nmissing(ALL)
+smpl ALL --no-missing --permanent
+
+
+# =======================================
+# We start with a single train-test split example.
+# Hence, no cross-validation done here.
+# ALSO: We assume some specific no. of neighbors -> no optimization!
+# =======================================
+
+# Parameters
+scalar FRACTION_TRAINSET = 0.7  # 0 to 1: fraction of data to preserve for training
+scalar NEIGHBORS = 3    # adjust accordingly
+bundle PARAMS = _(splitters="none")  # "none" -> no CV done
+
+
+# Set training set: just some random sample (not stratified!)
+# Create a boolean mask series
+series trainset = randgen(u, 0, 1) <= FRACTION_TRAINSET
+smpl trainset == TRUE --restrict
+printf "Restricted to training set (N=%d).\n", $nobs
+
+# Let's check relative class occurences
+print value_counts(choice, TRUE)  # relative class occurences
+
+# Train the model
+bundle Model = knn_fit(choice, X, NEIGHBORS, PARAMS)
+print Model
+knn_summary(Model)
+
+# Compute out-of-sample predictions using tests set
+smpl trainset == FALSE --restrict --replace
+series ypred = knn_predict(Model, X)
+
+# Evaluate out-of-sample predictions
+list L = choice ypred
+print L --byobs --range=:15
+
+# Evaluation by means of confusion matrix
+matrix cm = ConfusionMatrix(choice, ypred)
+print cm
+
+# Compute precision and recall
+scalar precision_micro = PrecisionMicroKClass(choice, ypred)
+scalar precision_macro = PrecisionMacroKClass(choice, ypred)
+scalar precision_macro_weighted = PrecisionMacroKClass(choice, ypred, TRUE)
+scalar recall_macro = RecallMacroKClass(choice, ypred)
+scalar recall_macro_weighted = RecallMacroKClass(choice, ypred, TRUE)
+printf "Micro-averaged precision (single split) = %.4f\n", precision_micro
+printf "Macro-averaged precision (single split) = %.4f\n", precision_macro
+printf "Weighted macro precision (single split) = %.4f\n", precision_macro_weighted
+printf "Macro-averaged recall (single split) = %.4f\n", recall_macro
+printf "Weighted macro recall (single split) = %.4f\n", recall_macro_weighted
+# Plot the confusion matrix as a heatmap
+PlotConfusionHeatmap(cm, "Confusion matrix for single train-test split")
+
+
+# =====================================
+# Cross-validation instead of single train-test split
+# and identifying optimal K
+# Multiple times the training set is subsampled into
+# some (smaller) training set and validation set by
+# Gretl automatically
+# =====================================
+matrix NEIGHBORS_SEQ = seq(1, 4)  # sequence of no. of neighbors to evaluate
+scalar KFOLD_NSPLITS = 5     # only relevant for splitters = "kfold"
+string SPLITTERS = "kfold"   # either "kfold", "loo"
+string METRIC = "FSC"        # metric to optimize, FSC=F-Score, default: "PRC"
+string DISTANCE = "manhattan"  # see "help distance"
+
+# FIXME: It looks like "METRIC" different to "PRC" is not respected
+bundle CVparams = _(splitters = SPLITTERS,
+  kfold_nsplits = KFOLD_NSPLITS,
+  scoring_regression = METRIC,
+  distance_type = DISTANCE)
+
+# Set training set
+smpl trainset == TRUE --restrict --replace
+bundle Model = knn_fit(choice, X, NEIGHBORS_SEQ, CVparams)
+knn_summary(Model)
+knn_plot_cvscores(Model)
+
+# Activate testset and predict out-of-sample
+smpl trainset == FALSE --restrict --replace
+series ypred_test = knn_predict(Model, X)
+print choice ypred_test --byobs --range=:15
+
+# Evaluate predictions
+# =====================
+list L = ypred_test choice
+series fcerr_test = choice - ypred_test
+print L --byobs --range=:15
+
+# Confusion matrix
+matrix cmcv = ConfusionMatrix(choice, ypred_test)
+print cmcv
+scalar precision_micro_cv = PrecisionMicroKClass(choice, ypred_test)
+scalar precision_macro_cv = PrecisionMacroKClass(choice, ypred_test)
+scalar precision_macro_weighted_cv = PrecisionMacroKClass(choice, ypred_test, TRUE)
+scalar recall_macro_cv = RecallMacroKClass(choice, ypred_test)
+scalar recall_macro_weighted_cv = RecallMacroKClass(choice, ypred_test, TRUE)
+printf "Micro-averaged precision (CV model on test set) = %.4f\n", precision_micro_cv
+printf "Macro-averaged precision (CV model on test set) = %.4f\n", precision_macro_cv
+printf "Weighted macro precision (CV model on test set) = %.4f\n", precision_macro_weighted_cv
+printf "Macro-averaged recall (CV model on test set) = %.4f\n", recall_macro_cv
+printf "Weighted macro recall (CV model on test set) = %.4f\n", recall_macro_weighted_cv
+
+# Plot the confusion matrix as a heatmap
+PlotConfusionHeatmap(cmcv, "Confusion matrix for cross-validation")
+
+
+# Summary of results for single train-test split vs. cross-validation
+printf "Single train-test split vs. cross-validation results:\n"
+printf "Micro-averaged precision: %.4f vs. %.4f\n", precision_micro, precision_micro_cv
+printf "Macro-averaged precision: %.4f vs. %.4f\n", precision_macro, precision_macro_cv
+printf "Weighted macro precision: %.4f vs. %.4f\n", precision_macro_weighted, precision_macro_weighted_cv
+printf "Macro-averaged recall: %.4f vs. %.4f\n", recall_macro, recall_macro_cv
+printf "Weighted macro recall: %.4f vs. %.4f\n", recall_macro_weighted, recall_macro_weighted_cv
+
+
