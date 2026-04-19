@@ -1,0 +1,253 @@
+# ==============================================================
+# OLS, Ridge, and Lasso regression and prediction comparison
+# Dataset: "Hitters" dataset ("Introduction to Statistical Learning")
+# ==============================================================
+
+clear
+set verbose off
+set seed 1234
+
+
+/* Dataset required on your machine:
+
+We use a dataset on baseball players' salaries and performance statistics, which is available in the ISL ("Introduction to Statistical Learning") dataset collection.
+
+Install the dataset collection by running the following gretl command (ONLY needed once):
+	`pkg install isl.tar.gz`
+*/
+
+/* Packages required on your machine:
+
+1. pkg install regls
+2. pkg install PandasPort
+3. pkg install fdensity
+*/
+
+
+
+# Load packages
+# =============
+include regls.gfn
+# help regls  			# take a look at the help
+include PandasPort.gfn
+# help PandasPort
+include fdensity.gfn
+# help fdensity
+
+# Load helper functions
+include ml_helper.inp
+
+##### Parameters used within the script #####
+## 0 to 1: fraction of data to preserve for training
+scalar FRACTION_TRAINSET = 0.7
+## Parameters for RIDGE and LASSO
+scalar NLAMBDA = 30      # number of lambda values to evaluate (default: 30)
+scalar STDIZE = TRUE     # standardize variables (default: TRUE)
+scalar XVALIDATE = TRUE  # do cross-validation
+scalar NFOLDS = 5        # number of folds
+scalar RANDFOLDS = FALSE  # use random folds
+scalar VERBOSITY = FALSE
+
+
+# Open the dataset
+open Hitters.gdt --quiet --preserve
+
+# Inspect data
+print dataset --head
+print dataset --tail=7
+summary dataset --simple
+# use functions from PandasPort package
+print nmissing(Salary)
+print shape(dataset)
+
+# Initialize empty matrices for storing metrics
+matrix rsq_values_insample = {}
+matrix fcstats_insample = {}
+matrix fcstats_oos = {}
+
+# Preprocess data
+## Create binary 0-1 dummy series
+list CurrentData = dataset
+## List of categorical variables to dummify
+list Categorical = League Division NewLeague
+dummify Categorical --drop-first
+list OHE = dataset - CurrentData  # list only includes the new dummies
+print OHE --head
+
+# Remove missing values
+printf "No. of observations before removing missing values: %d\n", $nobs
+smpl dataset --no-missing --permanent
+printf "No. of observations after removing missing values: %d\n", $nobs
+
+
+# Define the list of features
+list X = dataset - Categorical - Salary
+printf "\nNumber of features = %d\n", nelem(X)
+print varnames(X)
+
+### Correlation matrix of features
+list ALL = Salary X
+corr ALL --triangle --quiet --plot=display
+
+# Create a boolean mask series for the training set
+## Draw from a uniform distribution [0,1]
+series trainset = randgen(u, 0, 1) <= FRACTION_TRAINSET
+
+
+# OLS using regls package
+# =========================
+## We set a single lambda value of 0, which corresponds to OLS (no regularization).
+## Setting lfrac supersedes the nlambda parameter
+scalar LFRAC = {0}  # set a single lambda value; 0 = OLS (no regularization)
+
+bundle ParamsOLS = _(lfrac=LFRAC,
+					 stdize=STDIZE,
+					 xvalidate=XVALIDATE,
+					 randfolds=RANDFOLDS,
+					 verbosity=VERBOSITY)
+
+
+# Train the OLS model and store the results in a bundle
+## Restrict dataset to training set
+smpl trainset == TRUE --restrict --replace
+printf "Restricted to training set (N=%d).\n", $nobs
+
+bundle ModelOLS = regls(Salary, X, ParamsOLS)
+print "OLS Coefficient estimates"
+matrix coeff_ols = ModelOLS.nzb
+print coeff_ols
+
+# Compare coefficients with OLS estimation using gretl's ols command
+ols Salary const X --simple
+
+# Show details on cross-validation results (if xvalidate=TRUE)
+regls_multiprint(ModelOLS, Salary, X)
+
+# Print in-sample R-squared and MSE
+matrix stats_ols = regls_get_stats(Salary, regls_pred(ModelOLS, X))
+rsq_values_insample ~= stats_ols[2]  # R-squared
+
+## activate testset and do out-of-sample prediction
+smpl trainset == FALSE --restrict --replace
+series fc_ols = regls_pred(ModelOLS, X)
+fcstats_oos ~= fcstats(Salary, fc_ols)
+smpl full
+
+
+# =========================
+# RIDGE
+# =========================
+bundle ParamsRidge = _(ridge=TRUE,
+					   nlambda=NLAMBDA,
+					   stdize=STDIZE,
+					   xvalidate=XVALIDATE,
+					   randfolds=RANDFOLDS,
+					   verbosity=VERBOSITY)
+
+# Train the RIDGE model and store the results in a bundle
+## Restrict dataset to training set
+smpl trainset == TRUE --restrict --replace
+
+bundle ModelRidge = regls(Salary, X, ParamsRidge)
+print "RIDGE Coefficient estimates"
+matrix coeff_ridge = ModelRidge.b
+print coeff_ridge    # optimal coefficient estimate vector
+
+# Show details on cross-validation results (if xvalidate=TRUE)
+regls_multiprint(ModelRidge, Salary, X)
+
+# Show coefficient path for some variables
+list VARS_TO_PLOT = Hits Runs RBI Walks Years
+regls_coeff_plot(ModelRidge, VARS_TO_PLOT)
+
+# Path of the penalized fit criterion
+regls_criterion_plot(ModelRidge)
+
+# Print in-sample R-squared and MSE
+matrix stats_ridge = regls_get_stats(Salary, regls_pred(ModelRidge, X))
+rsq_values_insample ~= stats_ridge[2]  # R-squared
+
+## activate testset and do out-of-sample prediction
+smpl trainset == FALSE --restrict --replace
+series fc_ridge = regls_pred(ModelRidge, X)
+fcstats_oos ~= fcstats(Salary, fc_ridge)
+smpl full
+
+# =========================
+# LASSO
+# =========================
+bundle ParamsLasso = ParamsRidge
+scalar ParamsLasso.ridge = FALSE  # switch to LASSO regression
+
+# Train the Lasso model and store the results in a bundle
+## Restrict dataset to training set
+smpl trainset == TRUE --restrict --replace
+
+bundle ModelLasso = regls(Salary, X, ParamsLasso)
+print "LASSO Coefficient estimates"
+print ModelLasso.nzb    # optimal coefficient estimate vector
+
+
+matrix coeff_lasso = ModelLasso.B[,ModelLasso.idxmin]
+strings vnames = defarray("const") + varnames(X)
+rnameset(coeff_lasso, vnames)
+printf "Coefficient estimates for best (minimized avg. MSE) Lasso-CV:\n%12.4f\n", coeff_lasso
+scalar nzeros = sum(coeff_lasso .= 0)
+printf "\n%d out of %d coefficients are zero.\n", nzeros, nelem(coeff_lasso)
+
+
+# Show details on cross-validation results (if xvalidate=TRUE)
+regls_multiprint(ModelLasso, Salary, X)
+
+# Show coefficient path for some variables
+list VARS_TO_PLOT = Hits Runs RBI Walks Years
+regls_coeff_plot(ModelLasso, VARS_TO_PLOT)
+
+# Path of the penalized fit criterion
+regls_criterion_plot(ModelLasso)
+
+# Print in-sample R-squared and MSE
+matrix stats_lasso = regls_get_stats(Salary, regls_pred(ModelLasso, X))
+rsq_values_insample ~= stats_lasso[2]  # R-squared
+
+## activate testset and do out-of-sample prediction
+smpl trainset == FALSE --restrict --replace
+series fc_lasso = regls_pred(ModelLasso, X)
+fcstats_oos ~= fcstats(Salary, fc_lasso)
+smpl full
+
+
+
+##### Coefficient comparison ###########
+strings MODEL_NAMES = defarray("OLS", "Ridge", "Lasso")
+matrix coeff_comparison = coeff_ols ~ coeff_ridge ~ coeff_lasso
+cnameset(coeff_comparison, MODEL_NAMES)
+printf "\nComparison of coefficient estimates:\n\n%12.3f", coeff_comparison
+
+##### Comparison of R^2 #####
+cnameset(rsq_values_insample, MODEL_NAMES)
+printf "\nIn-sample R² values\n%12.3f", rsq_values_insample
+
+##### Comparison of out-of-sample forecast evaluation statistics #######
+cnameset(fcstats_oos, MODEL_NAMES)
+printf "\nOut-of-sample forecast evaluation statistics\n%12.3f", fcstats_oos
+
+
+# Compute forecast errors
+series fcerror_ols = Salary - fc_ols
+series fcerror_ridge = Salary - fc_ridge
+series fcerror_lasso = Salary - fc_lasso
+list Fcerror = fcerror_ols fcerror_ridge fcerror_lasso
+
+boxplot Fcerror --output=display
+
+# Plot forecast errors density
+bundle Opts = _(title="Density of forecast errors",
+		 xlabel="Forecast error",
+		 ylabel="Density",
+		 grid=TRUE,
+		 add_opts = "set xrange[-1000:1500]")
+
+fdensity(Fcerror, null, Opts)
+
+
