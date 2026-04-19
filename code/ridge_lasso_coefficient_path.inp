@@ -1,0 +1,81 @@
+set verbose off
+set datacols 10
+set seed 1234
+clear
+
+# ADJUST your working directory
+string WORKDIR = "/home/admin-tarassow/Universität/Kurse_Eigene/THB/oekonometrie_ml_kurse/Ancona_Erasmus"
+
+set workdir "@WORKDIR"
+
+# Load packages
+## Download if needed: `pkg install regls`
+include regls.gfn
+
+# Open the help if you want
+#help regls
+
+# Open dataset
+## Install data collection if needed: `pkg install isl.tar.gz`
+open Hitters.gdt --quiet
+
+# Create list of features
+list RHS = Hits..Years  # adjust accordingly
+
+# Remove missing values
+smpl dataset --no-missing --permanent
+
+
+# RIDGE with default values
+# =========================
+bundle Params = null
+scalar Params.ridge = TRUE  # switch to Ridge regression
+scalar Params.verbosity = FALSE
+bundle Ridge = regls(Salary, RHS, Params)
+
+print "Coefficient estimates"
+print Ridge.b
+regls_coeff_plot(Ridge, Ridge.xlist)
+
+
+
+# RIDGE with user-specific parameters
+# ===================================
+# Set parameters (not all used here)
+scalar NLAMBDA = 33       # number of lambda values to evaluate
+scalar STDIZE = TRUE      # standardize variables
+scalar XVALIDATE = FALSE  # if TRUE, do cross-validation
+scalar NFOLDS = 5         # number of folds
+scalar RANDFOLDS = FALSE  # use random folds
+scalar VERBOSITY = FALSE
+
+# Set up the parameters bundle
+bundle Params = null
+scalar Params.ridge = TRUE  # switch to Ridge regression
+scalar Params.nlambda = NLAMBDA
+scalar Params.xvalidate = XVALIDATE
+bundle Ridge = regls(Salary, RHS, Params)
+
+# Store and print optimal beta coefficient vector
+matrix bhat = Ridge.b
+print bhat
+
+# Show coefficient path for some variables
+list VARIABLES_TO_PLOT = Hits Runs RBI Walks Years
+string filename = "./figures/ridge_regls_coefficient_path.png"
+regls_coeff_plot(Ridge, VARIABLES_TO_PLOT, filename)
+
+# Path of the penalized fit criterion
+string filename = "./figures/ridge_regls_bic_path.png"
+regls_criterion_plot(Ridge, filename)
+
+# Show further detailed information
+regls_multiprint(Ridge, Salary, RHS)
+
+
+# Store in-sample prediction
+series yhat_ridge = regls_pred(Ridge, RHS) # in-sample prediction
+print Salary yhat_ridge --head
+
+# Store in-sample statistics
+print regls_get_stats(Salary, yhat_ridge)
