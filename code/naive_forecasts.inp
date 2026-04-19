@@ -1,0 +1,153 @@
+set verbose off
+
+# Parameters
+#============
+# WARNING: Please adjust the path to your local directory before running the
+# code. The code will not run otherwise.
+WORKDIR = "/home/admin-tarassow/Universität/Kurse_Eigene/THB/oekonometrie_ml_kurse/Ancona_Erasmus/"
+
+set workdir "@WORKDIR"
+
+# =============
+# Exercise 1: Load data and set sample
+# =============
+open "./data/aus_production.gdt"
+
+# Remove all observations before 1992:1 permanently
+smpl obs >= 1992:1 --restrict --permanent
+
+# General parameters
+#bundle Params = empty  # empty bundle
+#scalar Params.h=8    # forecast horizon
+scalar HORIZON = 8
+series TARGET = Beer  # target series
+
+# Construct binary series for distingzising between train/test sets
+series istrain = FALSE
+smpl $t1 ($tmax - HORIZON)
+series istrain = TRUE
+smpl full
+
+# Activate training set
+smpl istrain == TRUE --restrict
+matrix Forecasts = empty  # empty matrix holding point forecasts
+
+
+function matrix meanFC (const series y,
+                        const int horizon[1::])
+    /* Mean forecast. All available observations of "y" are used for
+    computing the mean. */
+
+    scalar avg = mean(y)
+    matrix ret = avg * ones(horizon)
+
+    return ret
+end function
+
+function matrix rwFC (const series y,
+                      const int horizon[1::])
+    /* Random-Walk forecast. */
+
+    # Retrieve the last observation value
+    matrix ret = y[$t2] * ones(horizon)
+
+    return ret
+end function
+
+function matrix rwdriftFC (const series y,
+                           const int horizon[1::])
+    /* Random-Walk forecast plus Drift. */
+
+    # Retrieve the last observation value
+    scalar delta_t1_t2 = y[$t2] - y[$t1]
+    scalar mean_delta = delta_t1_t2 / ($nobs -1)
+    matrix ret = y[$t2] .+ seq(1,horizon)' .* mean_delta
+
+    return ret
+end function
+
+function matrix smeanFC (const series y,
+                         const int horizon[1::])
+    /* Seasonal mean forecast. */
+
+    scalar periodicity = $pd  # 4=quarterly, 7= daily etc.
+    series year, month, day
+    isoconv($obsdate, &year, &month, &day)
+    if $pd == 4 # quarterly
+        series quarter = 1
+        quarter = contains(month, {4, 5, 6}) ? 2 : quarter
+        quarter = contains(month, {7, 8, 9}) ? 3 : quarter
+        quarter = contains(month, {10, 11, 12}) ? 4 : quarter
+    endif
+
+    series factor = month
+    if $pd == 4 # quarterly
+        series factor = quarter
+    elif $pd == 12 # monthly
+        series factor = month
+    elif contains($pd, {5,6,7} # daily
+        series factor = weekday($obsdate)
+    endif
+
+    # Mean values per period
+    matrix table = aggregate(y, factor, "mean")
+    matrix ret = mshape(NA, horizon, 1)  # store point forecasts
+    scalar last_factor_value = factor[$t2]
+    # first quarter/month to fill up
+    scalar tofill = last_factor_value == rows(table) ? 1 : \
+                    (1 + last_factor_value)
+
+    loop i=1..horizon
+        ret[i] = table[tofill, end]
+        if tofill >= $pd  # e.g. month=12 -> switch back to 1
+            tofill = 1
+        else
+            tofill++
+        endif
+    endloop
+
+    return ret
+end function
+
+# Mean forecast
+Forecasts ~= meanFC(TARGET, HORIZON)
+
+# Random-Walk
+Forecasts ~= rwFC(TARGET, HORIZON)
+
+# Random-Walk + Drift
+Forecasts ~= rwdriftFC(TARGET, HORIZON)
+
+# Seasonal mean
+Forecasts ~= smeanFC(TARGET, HORIZON)
+
+# Add column names to matrix
+strings clabels = defarray("meanfc", "rw", "rwdrift", "smean")
+cnameset(Forecasts, clabels)
+
+# Create series out of point forecasts
+smpl istrain == FALSE --restrict --replace # activate test set
+list FC = mat2list(Forecasts)
+
+# Forecast Evaluation
+# ===================
+matrix fc_stats = fcstats(TARGET, Forecasts)
+cnameset(fc_stats, clabels)
+print "Forecast statistics:"
+printf "%12.3f\n", fc_stats
+
+# Plot actual and forecasts
+smpl istrain == FALSE --restrict --replace # activate test set
+smpl -16 $tmax  #
+
+list L = TARGET FC
+
+# FILENAME = "comparison_naive_methods.png"
+gnuplot L --with-lines --time-series --output=display \  # "./figures/@FILENAME" \
+  { set grid;
+    set linetype 1 lw 2 lc rgb "black";
+    set linetype 2 lw 1.5 lc rgb "red";
+    set linetype 3 lw 1.5 lc rgb "blue";
+    set linetype 4 lw 1.5 lc rgb "cyan";
+    set linetype 5 lw 1.5 lc rgb "orange";}
+
