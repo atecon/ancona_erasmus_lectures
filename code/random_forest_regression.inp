@@ -1,0 +1,187 @@
+# ==============================================================
+# Random Forest vs. Ridge regression and prediction comparison
+# Dataset: "Hitters" dataset ("Introduction to Statistical Learning")
+# ==============================================================
+
+clear
+set verbose off
+set seed 1234
+
+
+/* Dataset required on your machine:
+
+We use a dataset on baseball players' salaries and performance statistics, which is available in the ISL ("Introduction to Statistical Learning") dataset collection.
+
+Install the dataset collection by running the following gretl command (ONLY needed once):
+	`pkg install isl.tar.gz`
+*/
+
+/* Packages required on your machine:
+
+1. pkg install regls
+2. pkg install random_forest
+3. pkg install fdensity
+
+NOTE on "random_forest" package: The random forest implementation used in this script is based on the "randomForest" R package by Andy Liaw and Matthew Wiener. The gretl package "random_forest" provides an interface to the R package, allowing you to fit random forest models from within gretl. To use the "random_forest" package, you need to have R installed on your machine, along with the "randomForest" package. You can install the "randomForest" package in R by running `install.packages("randomForest")`.
+*/
+
+
+# Load packages
+# =============
+include random_forest.gfn
+# help random_forest
+include CvDataSplitter.gfn
+# help CvDataSplitter
+
+# Load helper functions
+include ml_helper.inp
+
+##### Parameters used within the script #####
+## 0 to 1: fraction of data to preserve for training
+scalar FRACTION_TRAINSET = 0.7
+
+# Open the dataset
+open Hitters.gdt --quiet --preserve
+
+# Initialize empty matrices for storing metrics
+matrix rsq_values_insample = {}
+matrix fcstats_insample = {}
+matrix fcstats_oos = {}
+
+# Remove missing values
+printf "No. of observations before removing missing values: %d\n", $nobs
+smpl dataset --no-missing --permanent
+printf "No. of observations after removing missing values: %d\n", $nobs
+
+
+# Define the list of features
+list X = dataset - Salary
+printf "\nNumber of features = %d\n", nelem(X)
+print varnames(X)
+
+
+
+# =========================
+# Random Forest Regression Tree
+# with a single train-test split
+# =========================
+# Create a boolean mask series for the training set
+## Draw from a uniform distribution [0,1]
+series trainset = randgen(u, 0, 1) <= FRACTION_TRAINSET
+
+
+## Parameters for Tree model
+### Positive number of random features evaluated at each split;
+### FALSE: default value for regression is =k/3
+scalar TUNE = FALSE
+scalar VERBOSE = FALSE
+
+# TODO: make configurable
+# scalar NTREE = 1  # number of trees to grow (default: 500)
+# TODO: rename mtry to num_features or similar
+# TODO: Make metric to evaluate splits configurable (currently defaults to MSE for regression trees)
+bundle ParamsTree = _(verbose = VERBOSE,
+					  tune = TUNE,
+					  seed = 1234)
+# Provide a boolean mask for the training set
+ParamsTree.d_train = trainset
+
+# Train the RIDGE model and store the results in a bundle
+## Restrict dataset to training set
+#smpl trainset == TRUE --restrict --replace
+
+bundle ModelTree = random_forest(Salary, X, ParamsTree)
+rf_plot(&ModelTree)
+rf_print(&ModelTree)
+print ModelTree --tree
+
+
+
+# =========================
+# Cross-validation for Random Forest
+# The random_forest package provides no built-in cross-validation functionality,
+# but we can implement it ourselves using the CvDataSplitter package
+# =========================
+
+# Set up cross-validation
+bundle CV = null
+list CV.X = Salary 	# passing a single series is sufficient
+CV.cv_type = "kfold"
+CV.nfolds = 5
+
+# Pass bundle 'CV' in pointer form + run
+CvDataSplitter(&CV)
+print CV --tree
+printf "Number of train-test sets = %d\n", nelem(CV.X_train)
+
+# Let's start the loop over the various training-test sets,
+# estimate the models and store the forecasts for each
+# iteration
+
+# # initialize an empty matrices for holding point forecasts
+matrix fcstats_insample = {}
+matrix fcstats_oosample = {}
+
+smpl full
+genr index  # create an index variable to keep track of the original row numbers
+
+loop foreach i CV.X_train
+	smpl full
+
+	# Create a boolean mask for the i-th training set
+	series trainset = contains(index, CV.X_train[i])
+
+	## Random Forest model
+	ParamsTree.d_train = trainset
+	bundle ModelTree = random_forest(Salary, X, ParamsTree)
+
+	fcstats_insample ~= ModelTree.regstats[,1]
+	fcstats_oosample ~= ModelTree.regstats[,2]
+endloop
+
+# Compute average in-sample and out-of-sample metrics (in rows)
+# across the various train-test splits (in columns)
+matrix avg_fcstats_insample = meanr(fcstats_insample) ~ sdc(fcstats_insample')'
+matrix avg_fcstats_oosample = meanr(fcstats_oosample) ~ sdc(fcstats_oosample')'
+
+# Attach row and column names for better readability
+strings collabels = defarray("Mean", "Std. Dev.")
+strings metric_names = rnameget(ModelTree.regstats)
+
+cnameset(avg_fcstats_insample, collabels)
+rnameset(avg_fcstats_insample, metric_names)
+cnameset(avg_fcstats_oosample, collabels)
+rnameset(avg_fcstats_oosample, metric_names)
+
+# In-sample statistics first
+print "In-sample metrics (averaged across CV splits):"
+print avg_fcstats_insample
+
+# Out-of-sample statistics next
+printf "\nOut-of-sample metrics (averaged across CV splits):"
+print avg_fcstats_oosample
+
+/*
+RANDOM FOREST REGRESSION RESULTS:
+Out-of-sample metrics (averaged across CV splits):
+avg_fcstats_oosample (5 x 2)
+
+             Mean    Std. Dev.
+  ME       11.495       36.224
+RMSE       285.60       78.831
+ MAE       172.13       41.632
+ MPE      -17.027       6.9910
+MAPE       34.677       4.3031
+
+
+LINEAR REGRESSION RESULTS AVERAGED ACROSS CV SPLITS (see ols_ridge_lasso_crossvalidation.inp for details):
+
+Out-of-sample forecast evaluation statistics
+              OLS       Ridge       Lasso
+  ME       65.160      35.406      59.552
+RMSE      336.952     308.909     326.737
+ MAE      231.932     205.325     223.793
+ MPE      -32.528     -33.831     -32.935
+MAPE       71.266      65.007      69.547
+*/
+
