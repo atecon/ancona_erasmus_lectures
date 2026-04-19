@@ -1,0 +1,142 @@
+function matrix ConfusionMatrix (const series y, const series f)
+    /* Confusion matrix */
+
+    list L = y f
+    xtab L --column
+    matrix ret = $result[-end,-end]
+    rnameset(ret, "y=1 y=2 y=3 y=4 y=5")
+    cnameset(ret, "f=1 f=2 f=3 f=4 f=5")
+
+    return ret
+end function
+
+
+function void PlotConfusionHeatmap (const matrix cm,
+                                    const string title[null],
+                                    const string filename[null])
+    /* Plot a user-supplied confusion matrix with fixed heatmap settings.*/
+
+    bundle PlotParams = _(xlabel = "Predicted class",
+                ylabel = "Actual class",
+                zerowhite = TRUE,
+                printvals = TRUE,
+                do_labels = TRUE)
+
+    if exists(title)
+        PlotParams.title = title
+    endif
+    if exists(filename)
+        PlotParams.dest = filename
+    endif
+
+    heatmap(cm, PlotParams)
+end function
+
+
+function scalar RecallMacroKClass (const series y, const series f,
+                                   const bool weighted[FALSE])
+  /* Macro recall from class-wise recalls via aggregate().
+     Computes per-class recall (TP_i / (TP_i + FN_i)) by grouping on true class y.
+    In single-label multiclass classification, weighted macro recall equals
+    accuracy and also equals micro-precision.
+
+     Parameters:
+       y: series of true class labels
+       f: series of predicted class labels
+       weighted: if TRUE, compute support-weighted macro recall; otherwise
+                 return simple unweighted average of per-class recalls
+
+     Returns:
+       Unweighted: average of all per-class recalls
+       Weighted: support-weighted average following sklearn convention
+
+    See also:
+        - https://scikit-learn.org/stable/modules/model_evaluation.html#accuracy-score
+        - https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html
+  */
+
+  series iscorrect = y == f ? 1 : 0
+  matrix recall_by_class = aggregate(iscorrect, y, "mean")
+  /* aggregate() returns one row per true class:
+     - Column 1: class label
+     - Column 2: count (support) of that true class
+     - Column 3: mean of iscorrect for that class = recall_i
+  */
+
+  if weighted
+    /* Weighted macro recall: sum_i (n_i/N) * recall_i */
+    matrix frequencies = recall_by_class[,2] ./ sumc(recall_by_class[,2])
+    return sumc(frequencies .* recall_by_class[,3])
+  endif
+
+  /* Unweighted macro recall: average of all per-class recalls */
+  return meanc(recall_by_class[,3])
+end function
+
+
+function scalar PrecisionMacroKClass (const series y, const series f,
+                                      const bool weighted[FALSE])
+  /* Macro precision from confusion-matrix counts via xtab.
+     Per-class precision_i = TP_i / (TP_i + FP_i) = cm[i,i] / colsum_i.
+     If weighted is nonzero, weight class-wise precisions by true-class
+     support (row sums), following sklearn's weighted macro precision. */
+
+  xtab y f --quiet
+  matrix cm = $result[-end,-end]
+
+  scalar k = rows(cm)
+  scalar precision_sum = 0
+  scalar weighted_sum = 0
+  scalar total_support = 0
+
+  if cols(cm) != k
+    printf "Error: confusion matrix must be square (k x k).\n"
+    return NA
+  endif
+
+  loop i=1..k --quiet
+    scalar colsum_i = 0
+    scalar support_i = 0
+    scalar precision_i = 0
+
+    loop r=1..k --quiet
+      colsum_i += cm[r,i]
+      support_i += cm[i,r]
+    endloop
+
+    if colsum_i > 0
+      precision_i = cm[i,i] / colsum_i
+    endif
+
+    precision_sum += precision_i
+    weighted_sum += support_i * precision_i
+    total_support += support_i
+  endloop
+
+  if weighted
+    if total_support <= 0
+      return 0
+    endif
+
+    return weighted_sum / total_support
+  endif
+
+  if k <= 0
+    return NA
+  endif
+
+  return precision_sum / k
+end function
+
+
+function scalar PrecisionMicroKClass (const series y, const series f)
+  /* In single-label multiclass classification, sklearn's micro-averaged
+     precision is identical to the overall classification accuracy. */
+
+  xtab y f --quiet
+  cm = $result[-end,-end]
+
+  series iscorrect = y == f ? 1 : 0
+
+  return mean(iscorrect)
+end function
