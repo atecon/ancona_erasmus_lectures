@@ -8,8 +8,8 @@ The material is intended as a compact companion to the lectures. It is therefore
 
 The repository includes two main slide decks:
 
-- `slides/ancona_erasmus_forecasting_introduction.tex`: introduction to time-series forecasting, practical forecasting workflows, and model evaluation.
-- `slides/machine_learning_gretl_into.tex`: overview of machine learning methods in Gretl, including supervised and unsupervised examples.
+- `slides/ancona_erasmus_forecasting_introduction.pdf`: introduction to time-series forecasting, practical forecasting workflows, and model evaluation.
+- `slides/machine_learning_gretl_into.pdf`: overview of machine learning methods in Gretl, including supervised and unsupervised examples.
 
 ## Gretl Example Scripts
 
