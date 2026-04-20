@@ -24,6 +24,14 @@ The `code/` directory contains Gretl/Hansl scripts that accompany the lectures. 
 
 Some scripts also rely on local helper code included in this repository.
 
+## Getting the Repository
+
+The simplest way to obtain all materials with the correct folder structure is:
+
+1. Go to [https://github.com/atecon/ancona_erasmus_lectures](https://github.com/atecon/ancona_erasmus_lectures).
+2. Click the green **Code** button and select **Download ZIP**.
+3. Extract the archive. The correct subfolder structure is already in place — no further reorganisation is needed.
+
 ## Running the Gretl Examples
 
 Before running an example script, students should read the script carefully. Several examples assume that required Gretl add-on packages have already been installed locally, and some examples also rely on external Gretl dataset collections.
