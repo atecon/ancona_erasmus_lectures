@@ -5,7 +5,7 @@ set verbose off
 
 # WARNING: Please adjust the path to your local directory before running the
 # code. The code will not run otherwise.
-WORKDIR = "/home/admin-tarassow/Universität/Kurse_Eigene/THB/oekonometrie_ml_kurse/Ancona_Erasmus/"
+WORKDIR = "/home/admin-tarassow/git/ancona_erasmus_lectures/"
 
 # WARNING: before running this script, make sure that the "figures"
 # subfolder exists in the appropriate location - namely in your working directory
