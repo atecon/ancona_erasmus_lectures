@@ -34,7 +34,7 @@ open keane.gdt --preserve
 
 # Look into the target series "choice"
 print choice --head=10
-print value_counts(choice, TRUE)  # relative class occurences
+print value_counts(choice, TRUE)  # relative class occurrences
 
 # Define the list of features
 list X = educ exper expersq status
