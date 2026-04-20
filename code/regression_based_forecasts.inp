@@ -17,7 +17,7 @@ set workdir "@WORKDIR"
 # =============
 # Exercise 1: Load data and set sample
 # =============
-open "./data/aus_production.gdt"
+open "./data/aus_production.gdt" --preserve
 setobs 4 1956:1 --time-series
 
 # Remove all observations before 1992:1 permanently
@@ -40,12 +40,12 @@ series uhat_trendmodel = $uhat  # residuals from trend model
 series yhat_trendmodel = $yhat  # fitted values from trend model
 
 # Plot actual vs. fitted values over time
-string FILENAME = "trend_model_actual_fitted.png"
+#string FILENAME = "trend_model_actual_fitted.png"
 gnuplot Beer yhat_trendmodel --with-lines --time-series \
-    --output="./figures/@FILENAME" \
+    --output=display \
   {set grid;
    set key outside below;
-   set linetype 1 lw 1.0 lc rgb "black";\
+   set linetype 1 lw 1.0 lc rgb "black";
    set linetype 2 lw 1.5 lc rgb "#D55E00";
    set title "Australian quarterly beer production (trend model)";
    set ylabel "Megalitres";}
@@ -54,9 +54,9 @@ gnuplot Beer yhat_trendmodel --with-lines --time-series \
 series quarter = $obsminor  # series indicating quarter
 print quarter -o --range=1:6
 
-string FILENAME = "trend_model_scatter_actual_fitted_by_quarter.png"
+#string FILENAME = "trend_model_scatter_actual_fitted_by_quarter.png"
 gnuplot yhat_trendmodel Beer quarter --factorized \
-    --output="./figures/@FILENAME" \
+    --output=display \
   {set grid;
    set key outside below;
    set title "Australian beer production";
@@ -142,21 +142,21 @@ setinfo forecast_seasonmodel --graph-name="Seasonal Model" # for plot legend
 smpl 2007:1 $tmax  # Define evaluation sample
 
 list L = Beer forecast_seasonmodel
-FILENAME = "seasonal_model_actual_forecast.png"
-gnuplot L --time-series --with-lines --output="./figures/@FILENAME" \
+#FILENAME = "seasonal_model_actual_forecast.png"
+gnuplot L --time-series --with-lines --output=display \
   {set grid; set key outside below;
    set linetype 1 lw 1.0 lc rgb "black";
    set linetype 2 lw 1.5 lc rgb "red";}
 
 # Comparison forecast errors
 series fcerror_seasonmodel = Beer - forecast_seasonmodel
-string FILENAME = "seasonal_model_forecast_errors.png"
+#string FILENAME = "seasonal_model_forecast_errors.png"
 gnuplot fcerror_seasonmodel --time-series --with-lines \
-  --output="./figures/@FILENAME" { set grid;}
+  --output=display { set grid;}
 
 # Distribution of forecast errors
-FILENAME = "seasonal_model_forecast_errors_boxplot.png"
-boxplot fcerror_seasonmodel --output="./figures/@FILENAME"
+#FILENAME = "seasonal_model_forecast_errors_boxplot.png"
+boxplot fcerror_seasonmodel --output=display
 
 # Evaluation statistics
 list L = forecast_seasonmodel
@@ -170,13 +170,13 @@ print fc_stats
 #==================
 # 6: Distributed Lag
 #==================
-open "./data/aus_production.gdt"
+open "./data/aus_production.gdt" --preserve
 list Seasonals = seasonals(1)  # omit first quarter
 smpl 1992:1 $tmax
 
-FILENAME = "tsplot_beer_cement.png"
+#FILENAME = "tsplot_beer_cement.png"
 gnuplot Beer Cement --y2axis=Cement --time-series --with-lines \
-  --output="./figures/@FILENAME" \
+  --output=display \
   {set grid; set key top left;
    set yrange[100:650]; }
 
@@ -197,9 +197,9 @@ smpl 2008:1 $tmax
 bundle B = _(center="forecast", width="forecast_sd", factor=1.96,
              style="fill", title = "95% interval")
 
-FILENAME = "distributed_model_forecast_with_intervals.png"
+#FILENAME = "distributed_model_forecast_with_intervals.png"
 gnuplot Beer forecast --time-series --with-lines --band=B \
-  --output="./figures/@FILENAME" \
+  --output=display \
   {set grid; set key outside below;
    set yrange[300:550];}
 
