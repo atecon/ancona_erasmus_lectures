@@ -54,6 +54,12 @@ ancona_erasmus_lectures/
 
 This layout keeps scripts, input data, output figures, and lecture slides clearly separated and matches the assumptions used in most of the example files.
 
+## Exercises
+
+The `exercises/` directory contains preparatory exercise sheets for the lab sessions. Students should read the relevant sheet before the corresponding lab session.
+
+- `exercises/forecasting_lab_preparation.pdf`: pre-lab preparation sheet for the forecasting lecture, covering replication of examples from Hyndman and Athanasopoulos (FPP3) and an optional macroeconomic forecasting task using the AWM dataset.
+
 ## Intended Use
 
 This repository is primarily meant for students attending the Ancona lectures in April 2026. It can be used to review the lecture content, inspect the Gretl scripts discussed in class, and reproduce selected examples in a local Gretl installation.
