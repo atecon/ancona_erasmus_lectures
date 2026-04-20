@@ -4,7 +4,7 @@ set seed 1234
 clear
 
 # ADJUST your working directory
-string WORKDIR = "/home/admin-tarassow/Universität/Kurse_Eigene/THB/oekonometrie_ml_kurse/Ancona_Erasmus"
+string WORKDIR = "/home/admin-tarassow/git/ancona_erasmus_lectures/"
 
 set workdir "@WORKDIR"
 
