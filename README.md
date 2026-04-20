@@ -54,7 +54,7 @@ ancona_erasmus_lectures/
 
 This layout keeps scripts, input data, output figures, and lecture slides clearly separated and matches the assumptions used in most of the example files.
 
-## Exercises
+## Exercise for the Big Data Econometrics Course
 
 The `exercises/` directory contains preparatory exercise sheets for the lab sessions. Students should read the relevant sheet before the corresponding lab session.
 
