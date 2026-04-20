@@ -17,12 +17,10 @@ open "./data/aus_production.gdt"
 smpl obs >= 1992:1 --restrict --permanent
 
 # General parameters
-#bundle Params = empty  # empty bundle
-#scalar Params.h=8    # forecast horizon
 scalar HORIZON = 8
 series TARGET = Beer  # target series
 
-# Construct binary series for distingzising between train/test sets
+# Construct binary series for distinguishing between train/test sets
 series istrain = FALSE
 smpl $t1 ($tmax - HORIZON)
 series istrain = TRUE
