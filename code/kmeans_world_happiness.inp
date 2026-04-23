@@ -1,7 +1,8 @@
 # ==============================================================
 # K-means clustering: examples and diagnostics
 # Dataset: "World Happiness Report" dataset (2021 edition)
-#          taken from Greenacre et al. (2022) "Principal Component Analysis", URL: https://www.nature.com/articles/s43586-022-00184-w
+#          taken from Greenacre et al. (2022) "Principal Component Analysis",
+#          URL: https://www.nature.com/articles/s43586-022-00184-w
 # ==============================================================
 
 clear
@@ -9,10 +10,8 @@ set verbose off
 set seed 1234
 
 /* Packages required on your machine:
-
 1. pkg install kmeans
 2. pkg install fdensity
-
 */
 
 # Load packages
@@ -20,12 +19,8 @@ include kmeans.gfn
 # help kmeans   # check package documentation for details
 include fdensity.gfn
 
-# Load helper functions
-# include ml_helper.inp
-
 # Load dataset
 open "../data/world-happiness-report-2021.gdt" --preserve
-
 
 # Parameters
 list X = social life choices generosity corruption
