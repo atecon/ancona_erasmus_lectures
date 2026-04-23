@@ -1648,12 +1648,24 @@
 
 	\textbf{Important:} Always \textbf{standardize features} before clustering to avoid scale effects!
 \end{frame}
+
+\begin{frame}{K-Means: Initialization Problem}
+	\textbf{Why Initialization Matters:}
 	\begin{itemize}
 		\setlength{\itemsep}{0.15cm}
-		\item K-Means converges to \textbf{local optimum}, not global
-		\item Different random starting points $\Rightarrow$ different final clusters
-		\item \textbf{Solution}: Run $k$-means multiple times with different initializations, keep best
-		\item Alternative: K-Means++ initialization (smarter initial centroids)
+		\item K-Means converges to \textbf{local optimum}, not global optimum
+		\item Different random starting centroids $\Rightarrow$ different final solutions
+		\item Quality of solution depends on initial placement
+	\end{itemize}
+
+	\vspace{0.3cm}
+
+	\textbf{Solutions:}
+	\begin{itemize}
+		\setlength{\itemsep}{0.15cm}
+		\item \textbf{Multi-run strategy}: Run k-means multiple times with different random seeds, keep best (smallest WCSS)
+		\item \textbf{K-Means++}: Smarter initialization --- spread initial centroids far apart using probability-based selection
+		\item \textbf{Domain knowledge}: Initialize centroids based on subject-matter expertise
 	\end{itemize}
 \end{frame}
 
