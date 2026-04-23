@@ -124,7 +124,7 @@ print fc_errors[1:5,]
 
 # Boxplot of forecast errors
 # FILENAME = "boxplot_cross_validated_fcerrors.png"
-boxplot --matrix=fc_errors --output=display \  # "./figures/@FILENAME" \
+boxplot --matrix=fc_errors --output=display \
   { set title "Distribution of forecast errors";
     set grid;}
 
