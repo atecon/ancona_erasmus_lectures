@@ -1631,18 +1631,23 @@
 	\end{figure}
 \end{frame}
 
-\begin{frame}{K-Means: Distance Metric and Initialization}
-	\textbf{Distance Metric:}
+\begin{frame}{K-Means: Common Distance Metrics}
 	\begin{itemize}
 		\setlength{\itemsep}{0.15cm}
-		\item Default: Euclidean distance $\|\mathbf{x}_i - \boldsymbol{\mu}_k\| = \sqrt{\sum_j (x_{ij} - \mu_{kj})^2}$
-		\item Assumes continuous features on similar scales
-		\item \textbf{Important:} Standardize features before clustering!
+		\item \textbf{Euclidean} (Default): $\|\mathbf{x}_i - \boldsymbol{\mu}_k\| = \sqrt{\sum_j (x_{ij} - \mu_{kj})^2}$ \newline
+		  Use when: Features are continuous and on similar scales; assumes spherical clusters
+		\item \textbf{Manhattan} (L1): $\sum_j |x_{ij} - \mu_{kj}|$ \newline
+		  Use when: Less sensitive to outliers; works well with mixed feature types
+		\item \textbf{Minkowski} (General): $\left(\sum_j |x_{ij} - \mu_{kj}|^p\right)^{1/p}$ \newline
+		  Use when: $p=1$ is Manhattan, $p=2$ is Euclidean
+		\item \textbf{Cosine}: $1 - \frac{\mathbf{x}_i \cdot \boldsymbol{\mu}_k}{\|\mathbf{x}_i\| \|\boldsymbol{\mu}_k\|}$ \newline
+		  Use when: Text/document clustering; cares about direction, not magnitude
 	\end{itemize}
 
 	\vspace{0.2cm}
 
-	\textbf{Initialization Problem:}
+	\textbf{Important:} Always \textbf{standardize features} before clustering to avoid scale effects!
+\end{frame}
 	\begin{itemize}
 		\setlength{\itemsep}{0.15cm}
 		\item K-Means converges to \textbf{local optimum}, not global
