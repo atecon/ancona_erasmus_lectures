@@ -1061,103 +1061,6 @@
 \end{frame}
 
 
-\begin{frame}[fragile]{Support Vector Machines (SVM): Core Idea}
-	\textbf{Goal:} Find a separating hyperplane that maximizes the margin between classes.
-
-	\vspace{0.1cm}
-
-	\textbf{Linear SVM (for separable data):}
-	\begin{equation}
-		\min_{\boldsymbol{\beta}, b} \frac{1}{2} \|\boldsymbol{\beta}\|^2 \quad \text{subject to} \quad y_i(\mathbf{x}_i^\top \boldsymbol{\beta} + b) \geq 1 \text{ for all } i
-	\end{equation}
-
-	\begin{itemize}
-		%\setlength{\itemsep}{0.15cm}
-		\item \textbf{Margin}: Distance from hyperplane to nearest points (support vectors)
-		\item Maximize margin $\Leftrightarrow$ minimize $\|\boldsymbol{\beta}\|^2$
-		\item Support vectors are critical observations; ignore far points
-	\end{itemize}
-
-	\vspace{0.2cm}
-
-	\textbf{Non-separable case (soft margin):}
-	\begin{equation}
-		\min_{\boldsymbol{\beta}, b, \boldsymbol{\xi}} \frac{1}{2} \|\boldsymbol{\beta}\|^2 + C \sum_{i=1}^n \xi_i
-	\end{equation}
-
-	\begin{itemize}
-		%\setlength{\itemsep}{0.15cm}
-		\item Allow misclassifications (slack variables $\xi_i$)
-		\item Cost parameter $C$ trades off margin width vs. misclassification tolerance
-	\end{itemize}
-\end{frame}
-
-% New slide depicting the maximum margin hyperplane and support vectors for classification
-\begin{frame}
-	\begin{figure}
-		\centering
-		\includegraphics[width=0.7\textwidth]{../figures/raschka2019_classification_svm_maximum_margin.png}
-		\caption{SVM margin and support vectors. Source: \citep[p. 69]{raschka2019PythonMachineLearning}.}
-	\end{figure}
-	\vspace{0.5cm}
-
-	An open question in the field: Multiclass SVMs --- how to extend binary SVM to multi-class problems? Common approaches include one-vs-rest and one-vs-one strategies. For details, see \citet[p. 338]{Bishop2016}.
-\end{frame}
-
-
-\begin{frame}[fragile]{Support Vector Machines: Nonlinear Kernels}
-	\textbf{Linear kernels work only for linearly separable data}
-
-	\vspace{0.2cm}
-
-	\textbf{Kernel Trick:} Transform data to high-dimensional space implicitly \citep[pp. 75]{raschka2019PythonMachineLearning}
-
-	\vspace{0.2cm}
-
-	\textbf{Common kernels:}
-	\begin{table}
-		\small
-		\begin{tabular}{|l|l|l|}
-			\hline
-			\textbf{Kernel} & \textbf{Formula}                                                                        & \textbf{Use Case}     \\
-			\hline
-			Linear          & $K(\mathbf{x}_i, \mathbf{x}_j) = \mathbf{x}_i^\top \mathbf{x}_j$                        & Linearly separable    \\
-			\hline
-			Polynomial      & $K(\mathbf{x}_i, \mathbf{x}_j) = (\mathbf{x}_i^\top \mathbf{x}_j + r)^d$                & Moderate nonlinearity \\
-			\hline
-			RBF (Gaussian)  & $K(\mathbf{x}_i, \mathbf{x}_j) = \exp(-\gamma \|\mathbf{x}_i - \mathbf{x}_j\|^2)$       & Highly nonlinear      \\
-			\hline
-			Sigmoid         & $K(\mathbf{x}_i, \mathbf{x}_j) = \tanh(\kappa \mathbf{x}_i^\top \mathbf{x}_j + \theta)$ & Neural-inspired       \\
-			\hline
-		\end{tabular}
-	\end{table}
-
-	\vspace{0.2cm}
-
-	\textbf{Hyperparameter tuning:} Kernel choice and parameters (e.g., $\gamma$, $d$) crucial --- select via cross-validation
-\end{frame}
-
-\begin{frame}[fragile]{SVM for Regression}
-	\textbf{Support Vector Regression (SVR):} Similar to classification but predicts continuous values
-
-	\vspace{0.2cm}
-
-	\[
-		\min_{\boldsymbol{\beta}, b, \boldsymbol{\xi}} \frac{1}{2} \|\boldsymbol{\beta}\|^2 + C \sum_{i=1}^n (\xi_i + \xi_i^*)
-	\]
-
-	subject to: $|y_i - (\mathbf{x}_i^\top \boldsymbol{\beta} + b)| \leq \varepsilon + \xi_i$ and similar for $\xi_i^*$
-
-	\vspace{0.2cm}
-
-	\begin{itemize}
-		\setlength{\itemsep}{0.15cm}
-		\item \textbf{Epsilon ($\varepsilon$)}: Insensitive zone --- errors $< \varepsilon$ are ignored (Hinge loss)
-		\item \textbf{Sparse predictions}: Only observations outside $\varepsilon$ band are support vectors
-		\item Particularly useful for high-dimensional regression
-	\end{itemize}
-\end{frame}
-
 \begin{frame}{Gretl Built-in SVM Functionality}
 	\small
     \textbf{Author:} Allin Cottrell \\
@@ -1847,5 +1750,108 @@
 \end{frame}
 
 
+\begin{frame}{SVM}
+	\begin{center}
+		\LARGE
+		Support Vector Machines (SVM)
+	\end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Support Vector Machines (SVM): Core Idea}
+	\textbf{Goal:} Find a separating hyperplane that maximizes the margin between classes.
+
+	\vspace{0.1cm}
+
+	\textbf{Linear SVM (for separable data):}
+	\begin{equation}
+		\min_{\boldsymbol{\beta}, b} \frac{1}{2} \|\boldsymbol{\beta}\|^2 \quad \text{subject to} \quad y_i(\mathbf{x}_i^\top \boldsymbol{\beta} + b) \geq 1 \text{ for all } i
+	\end{equation}
+
+	\begin{itemize}
+		%\setlength{\itemsep}{0.15cm}
+		\item \textbf{Margin}: Distance from hyperplane to nearest points (support vectors)
+		\item Maximize margin $\Leftrightarrow$ minimize $\|\boldsymbol{\beta}\|^2$
+		\item Support vectors are critical observations; ignore far points
+	\end{itemize}
+
+	\vspace{0.2cm}
+
+	\textbf{Non-separable case (soft margin):}
+	\begin{equation}
+		\min_{\boldsymbol{\beta}, b, \boldsymbol{\xi}} \frac{1}{2} \|\boldsymbol{\beta}\|^2 + C \sum_{i=1}^n \xi_i
+	\end{equation}
+
+	\begin{itemize}
+		%\setlength{\itemsep}{0.15cm}
+		\item Allow misclassifications (slack variables $\xi_i$)
+		\item Cost parameter $C$ trades off margin width vs. misclassification tolerance
+	\end{itemize}
+\end{frame}
+
+% New slide depicting the maximum margin hyperplane and support vectors for classification
+\begin{frame}
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.7\textwidth]{../figures/raschka2019_classification_svm_maximum_margin.png}
+		\caption{SVM margin and support vectors. Source: \citep[p. 69]{raschka2019PythonMachineLearning}.}
+	\end{figure}
+	\vspace{0.5cm}
+
+	An open question in the field: Multiclass SVMs --- how to extend binary SVM to multi-class problems? Common approaches include one-vs-rest and one-vs-one strategies. For details, see \citet[p. 338]{Bishop2016}.
+\end{frame}
+
+
+\begin{frame}[fragile]{Support Vector Machines: Nonlinear Kernels}
+	\textbf{Linear kernels work only for linearly separable data}
+
+	\vspace{0.2cm}
+
+	\textbf{Kernel Trick:} Transform data to high-dimensional space implicitly \citep[pp. 75]{raschka2019PythonMachineLearning}
+
+	\vspace{0.2cm}
+
+	\textbf{Common kernels:}
+	\begin{table}
+		\small
+		\begin{tabular}{|l|l|l|}
+			\hline
+			\textbf{Kernel} & \textbf{Formula}                                                                        & \textbf{Use Case}     \\
+			\hline
+			Linear          & $K(\mathbf{x}_i, \mathbf{x}_j) = \mathbf{x}_i^\top \mathbf{x}_j$                        & Linearly separable    \\
+			\hline
+			Polynomial      & $K(\mathbf{x}_i, \mathbf{x}_j) = (\mathbf{x}_i^\top \mathbf{x}_j + r)^d$                & Moderate nonlinearity \\
+			\hline
+			RBF (Gaussian)  & $K(\mathbf{x}_i, \mathbf{x}_j) = \exp(-\gamma \|\mathbf{x}_i - \mathbf{x}_j\|^2)$       & Highly nonlinear      \\
+			\hline
+			Sigmoid         & $K(\mathbf{x}_i, \mathbf{x}_j) = \tanh(\kappa \mathbf{x}_i^\top \mathbf{x}_j + \theta)$ & Neural-inspired       \\
+			\hline
+		\end{tabular}
+	\end{table}
+
+	\vspace{0.2cm}
+
+	\textbf{Hyperparameter tuning:} Kernel choice and parameters (e.g., $\gamma$, $d$) crucial --- select via cross-validation
+\end{frame}
+
+\begin{frame}[fragile]{SVM for Regression}
+	\textbf{Support Vector Regression (SVR):} Similar to classification but predicts continuous values
+
+	\vspace{0.2cm}
+
+	\[
+		\min_{\boldsymbol{\beta}, b, \boldsymbol{\xi}} \frac{1}{2} \|\boldsymbol{\beta}\|^2 + C \sum_{i=1}^n (\xi_i + \xi_i^*)
+	\]
+
+	subject to: $|y_i - (\mathbf{x}_i^\top \boldsymbol{\beta} + b)| \leq \varepsilon + \xi_i$ and similar for $\xi_i^*$
+
+	\vspace{0.2cm}
+
+	\begin{itemize}
+		\setlength{\itemsep}{0.15cm}
+		\item \textbf{Epsilon ($\varepsilon$)}: Insensitive zone --- errors $< \varepsilon$ are ignored (Hinge loss)
+		\item \textbf{Sparse predictions}: Only observations outside $\varepsilon$ band are support vectors
+		\item Particularly useful for high-dimensional regression
+	\end{itemize}
+\end{frame}
 
 \end{document}
