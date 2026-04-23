@@ -1,0 +1,174 @@
+# ==============================================================
+# K-means clustering: examples and diagnostics
+# Dataset: "World Happiness Report" dataset (2021 edition)
+#          taken from Greenacre et al. (2022) "Principal Component Analysis", URL: https://www.nature.com/articles/s43586-022-00184-w
+# ==============================================================
+
+clear
+set verbose off
+set seed 1234
+
+/* Packages required on your machine:
+
+1. pkg install kmeans
+2. pkg install fdensity
+
+*/
+
+# Load packages
+include kmeans.gfn
+# help kmeans   # check package documentation for details
+include fdensity.gfn
+
+# Load helper functions
+# include ml_helper.inp
+
+# Load dataset
+open "../data/world-happiness-report-2021.gdt" --preserve
+
+
+# Parameters
+list X = social life choices generosity corruption
+
+# Clean data: remove observations with missing values in any of the features
+printf "Number of observations before removing missing values: %d\n", $nobs
+smpl X --no-missing
+printf "Number of observations after removing missing values: %d\n", $nobs
+
+# The kmeans_fit() function standardizes the features by default, so no
+# need to standardize manually here. Otherwise, you can use the `stdize()`
+# function or `stdize` command to standardize the features before fitting
+# the model.
+
+
+# Euclidean distance (default)
+# ============================
+scalar N_CLUSTERS = 2  # number of clusters to estimate
+bundle Model_bench = kmeans_fit(X, N_CLUSTERS)
+print Model_bench --tree
+kmeans_summary(Model_bench)
+
+/*
+You can also pass some user-defined parameter values to the kmeans_fit() function by means
+of a bundle as the third argument:
+
+- distance_type: string, Name of the distance metric applied (default: "euclidean").
+     Options include (among others): "manhattan", "chebyshev", "Mahalanobis".
+- initializer: string, Either "random" or "pca"
+- max_iter: int, Maximum number of iterations of the kmeans algorithm to run.
+- n_draws: int, Number of time the kmeans algorithm will be run with different centroid seeds.
+- verbose: int, Level of verbosity: 0: don't print anything, 1: print some details,
+  2: print more details (default: 0)
+*/
+
+# Manhattan distance + PCA-based initializer
+# ==================
+bundle Params = _(distance_type = "manhattan", initializer = "pca")
+bundle Model_manhattan = kmeans_fit(X, N_CLUSTERS, Params)
+kmeans_summary(Model_manhattan)
+
+
+# Scree plot using standard values and distance metrics
+/* Currently, you cannot pass user-defined parameters to the
+# kmeans_screeplot() function, but you can easily compute inertia values
+for different distance metrics and neighborship types by looping over the
+desired parameter values and calling the kmeans_fit() function with the
+corresponding parameters. */
+# Evaluate "inertia" for 1 to 6 clusters
+# ==========
+matrix scree = kmeans_screeplot(X, 6)
+print scree
+
+
+# Let's assume 2 clusters is the optimal number of clusters based on the scree plot
+scalar N_CLUSTERS_OPT = 2
+bundle Model_optimal = kmeans_fit(X, N_CLUSTERS_OPT)
+kmeans_summary(Model_optimal)
+
+# Create a series with the cluster assignment for each observation
+series cluster_id = Model_optimal.cluster_id
+print "Number of observations in each cluster"
+print aggregate(Countryname, cluster_id)
+print Countryname cluster_id --head
+print Countryname cluster_id --tail
+
+# Print the centroids of the clusters
+print Model_optimal.centroids
+
+# Plot distinct clusters for each variable combination in 2D
+kmeans_plot(X, Model_optimal)
+
+# Let's tewak the plot
+Model_optimal.use_circles = TRUE
+Model_optimal.pointsize = 1.5
+Model_optimal.grid = TRUE
+Model_optimal.transparency_level = 120
+Model_optimal.centroid = "median"
+Model_optimal.centroid_label = FALSE
+kmeans_plot(X, Model_optimal)
+
+
+# You may also try out gretl's built in factorized scatter plot feature
+gnuplot life choices cluster_id --factorized --output=display \
+  {set grid; set key outside below;
+   set title "World Happiness Report: Life Choices vs. Cluster Assignment";
+   set ylabel "Life score"; set xlabel "Choices score";}
+
+
+# Silhouette Analysis
+# ==================
+# Compute silhouette samples (aka coefficients) and scores
+series sil_samples = kmeans_sil_samples(Model_optimal, X)
+print sil_samples --head
+print sil_samples --tail
+
+scalar global_mean_sil_score = kmeans_sil_score(Model_optimal, X)
+printf "Global mean silhouette score: %.3f\n", global_mean_sil_score
+
+printf "Mean silhouette score per cluster:\n %12.3f\n",
+    kmeans_sil_score(Model_optimal, X, FALSE)
+
+printf "Median silhouette score per cluster:\n %12.3f\n",
+    aggregate(sil_samples, cluster_id, "median")
+
+# KDE of silhouette samples by cluster
+fdensity(sil_samples, cluster_id, _(grid=TRUE))
+
+# Silhouette plot
+kmeans_sil_plot(Model_optimal, X, _(height=750))
+
+
+# Identify countries with below mean silhouette score
+dataset sortby sil_samples
+series below_mean = sil_samples < global_mean_sil_score
+## Restrict to set of below-mean countries
+smpl below_mean == TRUE --restrict
+print Countryname cluster_id sil_samples --byobs
+smpl full  # remove sample restriction
+
+
+# Prediction and visualization of clusters
+# Let's restrict the dataset and remove GER, ITA and RUS to create a "new"
+# dataset without these countries and then predict the cluster assignment
+# for these countries based on the model estimated on the remaining data
+# ==========
+
+# Boolean mask for training set (exclude Germany, Italy, Egypt)
+series trainset = (Countryname != "Germany") && (Countryname != "Italy") \
+  && (Countryname != "Egypt")
+# Restrict dataset to training set
+smpl trainset == TRUE --restrict
+
+# Assume 2 clusters is still optimal
+bundle Model = kmeans_fit(X, 2,
+                        _(distance_type = "manhattan",
+                          initializer = "pca"))
+kmeans_summary(Model)
+
+# Predict cluster assignment for all observations (including excluded countries)
+smpl trainset == FALSE --restrict --replace
+series fc_cluster = kmeans_predict(X, Model)  # predict cluster belonging
+print Countryname fc_cluster --byobs
+smpl full
+
+
