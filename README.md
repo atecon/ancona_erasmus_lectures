@@ -9,7 +9,7 @@ The material is intended as a compact companion to the lectures. It is therefore
 The repository includes two main slide decks:
 
 - `slides/ancona_erasmus_forecasting_introduction.pdf`: introduction to time-series forecasting, practical forecasting workflows, and model evaluation.
-- `slides/machine_learning_gretl_into.pdf`: overview of machine learning methods in Gretl, including supervised and unsupervised examples.
+- `slides/machine_learning_introduction.pdf`: overview of basic machine learning methods, including supervised and unsupervised examples.
 
 ## Gretl Example Scripts
 
@@ -30,7 +30,7 @@ The simplest way to obtain all materials with the correct folder structure is:
 
 1. Go to [https://github.com/atecon/ancona_erasmus_lectures](https://github.com/atecon/ancona_erasmus_lectures).
 2. Click the green **Code** button and select **Download ZIP**.
-3. Extract the archive. The correct subfolder structure is already in place — no further reorganisation is needed.
+3. Extract the archive. The correct subfolder structure is already in place - no further reorganisation is needed.
 
 ## Running the Gretl Examples
 
