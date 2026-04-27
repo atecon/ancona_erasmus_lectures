@@ -352,10 +352,10 @@
 		\min_{\boldsymbol{\beta}} \frac{1}{n} \sum_{i=1}^n (y_i - \mathbf{x}_i^\top \boldsymbol{\beta})^2
 		+ \underbrace{\lambda \sum_{j=1}^p \beta_j^2}_{\text{L2 penalty}}
 	\end{equation}
-	%\vspace{0.2cm}
 
 	\begin{columns}[T,onlytextwidth]
 		\column{0.5\textwidth}
+		\small
 		\begin{itemize}
 			\item \textbf{Penalty term}: shrinks coefficients in contrast to discrete variable selection
 			\item \textbf{Tuning parameter} $\lambda \geq 0$ controls shrinkage strength
@@ -379,7 +379,8 @@
 	\end{equation}
 
 	\begin{columns}[T,onlytextwidth]
-		\column{0.55\textwidth}
+		\column{0.52\textwidth}
+		\small
 		\begin{itemize}
 			\item \textbf{Penalty term}: L1 norm, not squared
 			\item \textbf{Key difference from Ridge}: Induces \textbf{sparsity}
@@ -388,10 +389,10 @@
 			\item Useful for high-dimensional problems ($p \gg n$)
 		\end{itemize}
 
-		\column{0.45\textwidth}
+		\column{0.48\textwidth}
 		\begin{figure}
 			\centering
-			\includegraphics[width=0.88\textwidth]{../figures/james_etal_lasso_coefficient_path.png}
+			\includegraphics[width=0.8\textwidth]{../figures/james_etal_lasso_coefficient_path.png}
 		\end{figure}
 	\end{columns}
 \end{frame}
